@@ -18,10 +18,10 @@ export default function Home() {
           <AboutSection />
         </div>
         <div className="w-full">
-          {/* <AdvantagesSection /> */}
+          <AdvantagesSection />
         </div>
         <div className="w-full">
-          {/* <ProductsSection /> */}
+          <ProductsSection />
         </div>
       </main>
       <Footer />

@@ -1,5 +1,5 @@
-import React from "react";
 import { products } from "../data";
+import Link from "next/link";
 
 export default function ProductsSection() {
   return (
@@ -10,9 +10,9 @@ export default function ProductsSection() {
             <h2 className="text-3xl font-bold text-brand-text mb-2">Produk Pilihan</h2>
             <p className="text-gray-500">Favorit pelanggan dan anggota kami bulan ini.</p>
           </div>
-          <a href="#all-products" className="text-brand-green font-medium hover:underline flex items-center gap-1 text-sm hidden sm:flex">
+          <Link href="/products" className="text-brand-green font-medium hover:underline flex items-center gap-1 text-sm hidden sm:flex">
             Lihat Semua &rarr;
-          </a>
+          </Link>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -45,9 +45,9 @@ export default function ProductsSection() {
         </div>
         
         <div className="mt-8 text-center sm:hidden">
-          <a href="#all-products" className="text-brand-green font-medium hover:underline inline-flex items-center gap-1 text-sm">
+          <Link href="/products" className="text-brand-green font-medium hover:underline inline-flex items-center gap-1 text-sm">
             Lihat Semua &rarr;
-          </a>
+          </Link>
         </div>
       </div>
     </section>

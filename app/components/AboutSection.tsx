@@ -1,5 +1,5 @@
-import React from "react";
-import { CheckCircle2, Leaf } from "lucide-react";
+import { CheckCircle2, Users } from "lucide-react";
+import Link from "next/link";
 
 export default function AboutSection() {
   return (
@@ -12,7 +12,8 @@ export default function AboutSection() {
             alt="Petani Kopi"
             className="w-full h-[400px] object-cover"
           />
-          <div className="absolute bottom-4 left-4 bg-brand-green text-white px-4 py-2 rounded-md font-medium text-sm shadow-md">
+          <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/70 to-transparent pointer-events-none"></div>
+          <div className="absolute bottom-4 left-4 text-white px-4 py-2 font-medium text-lg">
             "Dedikasi dari Jantung Pupuan"
           </div>
         </div>
@@ -20,7 +21,7 @@ export default function AboutSection() {
         {/* Content Side */}
         <div className="w-full md:w-1/2">
           <div className="inline-flex items-center gap-2 bg-green-100 text-brand-green px-3 py-1 rounded-full text-xs font-semibold mb-6">
-            <Leaf size={14} />
+            <Users size={14} />
             <span>Tentang Kami</span>
           </div>
 
@@ -43,9 +44,9 @@ export default function AboutSection() {
             </li>
           </ul>
 
-          <button className="bg-brand-brown hover:bg-[#3a2e26] text-white px-6 py-3 rounded-md font-medium transition-colors">
+          <Link href="/about" className="inline-block bg-brand-brown hover:bg-[#3a2e26] text-white px-6 py-3 rounded-md font-medium transition-colors shadow-sm hover:shadow-md">
             Baca Cerita Lengkap &rarr;
-          </button>
+          </Link>
         </div>
       </div>
     </section>

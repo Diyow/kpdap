@@ -1,6 +1,8 @@
 import React from "react";
 import { footerLinks, contactInfo } from "../data";
 import { MapPin, Phone, Mail } from "lucide-react";
+import Link from "next/link";
+import Image from "next/image";
 
 export default function Footer() {
   return (
@@ -9,8 +11,13 @@ export default function Footer() {
         {/* Brand Info */}
         <div className="col-span-1 md:col-span-1">
           <div className="flex items-center gap-2 mb-6">
-            <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center text-brand-green font-bold text-xl">
-              K
+            <div className="w-12 h-12 relative bg-white rounded-full p-1 flex items-center justify-center shrink-0">
+              <Image
+                src="/KPDAP Logo.webp"
+                alt="KPDAP Logo"
+                fill
+                className="object-contain p-1.5"
+              />
             </div>
             <div>
               <h2 className="font-bold text-lg text-white leading-tight">KPDAP</h2>
@@ -27,9 +34,9 @@ export default function Footer() {
           <ul className="space-y-3 text-sm">
             {footerLinks.quickLinks.map((link) => (
               <li key={link.label}>
-                <a href={link.href} className="hover:text-white transition-colors">
+                <Link href={link.href} className="hover:text-white transition-colors">
                   {link.label}
-                </a>
+                </Link>
               </li>
             ))}
           </ul>

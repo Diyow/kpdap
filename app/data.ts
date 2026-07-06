@@ -1,15 +1,27 @@
 export const contactInfo = {
-  phone: "+-",
-  email: "-",
+  phone: "+6281246533592",
+  email: "koperasidharmaasastapertiwi@gmail.com",
 };
 
 export const navLinks = [
-  { label: "Halaman Utama", href: "#" },
-  { label: "Tentang Kami", href: "#about" },
-  { label: "Produk Kami", href: "#products" },
-  { label: "Berita", href: "#news" },
-  { label: "Member Portal", href: "#portal" },
-  { label: "Kontak", href: "#contact" },
+  { label: "Halaman Utama", href: "/" },
+  { 
+    label: "Tentang Kami", 
+    href: "/#about",
+    subLinks: [
+      { label: "Halaman Tentang Kami", href: "/about" }
+    ]
+  },
+  { 
+    label: "Produk Kami", 
+    href: "/#products",
+    subLinks: [
+      { label: "Semua Produk", href: "/products" }
+    ]
+  },
+  { label: "Berita", href: "/#news" },
+  { label: "Member Portal", href: "/#portal" },
+  { label: "Kontak", href: "/#contact" },
 ];
 
 export const businessUnits = [
@@ -63,14 +75,14 @@ export const products = [
   },
   {
     id: 2,
-    image: "https://images.unsplash.com/photo-1497935586351-b67a49e012bf?auto=format&fit=crop&q=80&w=800",
+    image: "/products/wisata_kebun.webp",
     title: "Paket Wisata Kebun",
     price: "Rp 150.000",
     badge: "Populer",
   },
   {
     id: 3,
-    image: "https://images.unsplash.com/photo-1592424001809-51a812304859?auto=format&fit=crop&q=80&w=800",
+    image: "/products/aa.jpg",
     title: "Pupuk Organik Padat",
     price: "Rp 25.000",
     badge: "Pertanian",
@@ -86,10 +98,10 @@ export const products = [
 
 export const footerLinks = {
   quickLinks: [
-    { label: "Tentang Kami", href: "#" },
-    { label: "Produk Kami", href: "#" },
-    { label: "Transparansi", href: "#" },
-    { label: "Penjelasan Website", href: "#" },
-    { label: "Kontak", href: "#" },
+    { label: "Tentang Kami", href: "/#about" },
+    { label: "Produk Kami", href: "/products" },
+    { label: "Transparansi", href: "/#transparency" },
+    { label: "Penjelasan Website", href: "/#website" },
+    { label: "Kontak", href: "/#contact" },
   ],
 };

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
+import FloatingWhatsApp from "./components/FloatingWhatsApp";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -19,7 +20,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="id" className={`${inter.variable} scroll-smooth antialiased`}>
-      <body className="min-h-screen flex flex-col font-sans">{children}</body>
+      <body className="min-h-screen flex flex-col font-sans">
+        {children}
+        <FloatingWhatsApp />
+      </body>
     </html>
   );
 }
