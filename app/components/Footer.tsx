@@ -1,10 +1,19 @@
 import React from "react";
-import { footerLinks, contactInfo } from "../data";
+import { footerLinks } from "../data";
 import { MapPin, Phone, Mail } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
+import { createClient } from "@/utils/supabase/server";
+import { cookies } from "next/headers";
+import { contactInfo as fallbackContact } from "../data";
 
-export default function Footer() {
+export default async function Footer() {
+  const cookieStore = await cookies();
+  const supabase = createClient(cookieStore);
+  
+  const { data: contactData } = await supabase.from("contact_info").select("*").eq("id", 1).single();
+  const contactInfo = contactData || fallbackContact;
+
   return (
     <footer className="bg-brand-brown text-[#d0c9c3] pt-16 pb-8 px-4 md:px-8 border-t-[8px] border-brand-green">
       <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-10 mb-12">

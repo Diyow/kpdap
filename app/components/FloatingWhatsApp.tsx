@@ -1,10 +1,17 @@
 "use client";
 
 import React from "react";
+import { usePathname } from "next/navigation";
 import { contactInfo } from "../data";
 
 export default function FloatingWhatsApp() {
+  const pathname = usePathname();
   const whatsappUrl = `https://wa.me/${contactInfo.phone.replace("+", "")}`;
+
+  // Don't show floating whatsapp on admin pages
+  if (pathname?.startsWith("/admin")) {
+    return null;
+  }
 
   return (
     <a

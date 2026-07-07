@@ -1,6 +1,7 @@
 import React from "react";
-import { businessUnits } from "../data";
 import { Coffee, MapPin, Sprout, Tractor } from "lucide-react";
+import { createClient } from "@/utils/supabase/server";
+import { cookies } from "next/headers";
 
 const getIcon = (iconName: string) => {
   switch (iconName) {
@@ -12,7 +13,12 @@ const getIcon = (iconName: string) => {
   }
 };
 
-export default function BusinessUnitsSection() {
+export default async function BusinessUnitsSection() {
+  const cookieStore = await cookies();
+  const supabase = createClient(cookieStore);
+  
+  const { data: businessUnits } = await supabase.from("business_units").select("*").order("id");
+
   return (
     <section className="py-20 px-4 md:px-8 max-w-7xl mx-auto text-center">
       <h2 className="text-3xl font-bold text-brand-text mb-4">Unit Usaha Kami</h2>
@@ -21,7 +27,7 @@ export default function BusinessUnitsSection() {
       </p>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        {businessUnits.map((unit, index) => (
+        {businessUnits?.map((unit, index) => (
           <div 
             key={index} 
             className="bg-white border border-gray-100 p-8 rounded-xl shadow-sm hover:shadow-md transition-shadow flex flex-col items-center text-center"

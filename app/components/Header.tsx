@@ -1,19 +1,33 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { contactInfo, navLinks } from "../data";
+import { contactInfo as defaultContact, navLinks } from "../data";
 import { Phone, Mail, User, MessageCircle, Menu, X } from "lucide-react";
+import { createClient } from "@/utils/supabase/client";
 
 export default function Header() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [expandedMobileMenu, setExpandedMobileMenu] = useState<string | null>(null);
 
+  const [contact, setContact] = useState({ phone: defaultContact.phone, email: defaultContact.email });
+
+  useEffect(() => {
+    const fetchContact = async () => {
+      const supabase = createClient();
+      const { data } = await supabase.from("contact_info").select("*").eq("id", 1).single();
+      if (data) {
+        setContact({ phone: data.phone, email: data.email });
+      }
+    };
+    fetchContact();
+  }, []);
+
   const toggleMobileSubmenu = (label: string) => {
     setExpandedMobileMenu(prev => prev === label ? null : label);
   };
 
-  const whatsappUrl = `https://wa.me/${contactInfo.phone.replace("+", "")}`;
+  const whatsappUrl = `https://wa.me/${contact.phone.replace("+", "")}`;
 
   return (
     <header className="w-full relative z-50">
@@ -22,16 +36,16 @@ export default function Header() {
         <div className="flex flex-wrap justify-center gap-4">
           <div className="flex items-center gap-1">
             <Phone size={12} />
-            <span>{contactInfo.phone}</span>
+            <span>{contact.phone}</span>
           </div>
           <div className="flex items-center gap-1">
             <Mail size={12} />
-            <span className="hidden sm:inline">{contactInfo.email}</span>
+            <span className="hidden sm:inline">{contact.email}</span>
             <span className="sm:hidden">Email Us</span>
           </div>
         </div>
         <div className="flex items-center gap-4">
-          <Link href="/#portal" className="flex items-center gap-1 hover:underline">
+          <Link href="/admin" className="flex items-center gap-1 hover:underline">
             <User size={12} />
             <span>Portal Anggota</span>
           </Link>
@@ -47,6 +61,7 @@ export default function Header() {
                 src="/KPDAP Logo.webp"
                 alt="KPDAP Logo"
                 fill
+                sizes="40px"
                 className="object-contain"
               />
             </div>

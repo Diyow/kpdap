@@ -1,4 +1,5 @@
 import React from "react";
+import Link from "next/link";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import { products } from "../data";
@@ -6,34 +7,6 @@ import { products } from "../data";
 // Extrapolating the data to simulate a full store page
 const allProducts = [
   ...products,
-  {
-    id: 5,
-    image: "https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?auto=format&fit=crop&q=80&w=800",
-    title: "Kopi Arabika Spesialti",
-    price: "Rp 85.000",
-    badge: "Baru",
-  },
-  {
-    id: 6,
-    image: "https://images.unsplash.com/photo-1606791405792-1004f1718d0c?auto=format&fit=crop&q=80&w=800",
-    title: "Eco Tote Bag",
-    price: "Rp 35.000",
-    badge: "Merchandise",
-  },
-  {
-    id: 7,
-    image: "https://images.unsplash.com/photo-1618160702438-9b02ab6515c9?auto=format&fit=crop&q=80&w=800",
-    title: "Mug Keramik KPDAP",
-    price: "Rp 45.000",
-    badge: "Merchandise",
-  },
-  {
-    id: 8,
-    image: "https://images.unsplash.com/photo-1559525839-b184a4d698c7?auto=format&fit=crop&q=80&w=800",
-    title: "Kopi Susu Literan",
-    price: "Rp 70.000",
-    badge: "Segar",
-  },
 ];
 
 export default function ProductsPage() {
@@ -44,9 +17,9 @@ export default function ProductsPage() {
         {/* Page Header */}
         <section className="bg-brand-brown py-16 px-4 md:px-8 text-center relative overflow-hidden">
           <div className="absolute inset-0 opacity-10">
-            <img 
-              src="https://images.unsplash.com/photo-1497935586351-b67a49e012bf?auto=format&fit=crop&q=80&w=2000" 
-              alt="Coffee beans background" 
+            <img
+              src="https://images.unsplash.com/photo-1497935586351-b67a49e012bf?auto=format&fit=crop&q=80&w=2000"
+              alt="Coffee beans background"
               className="w-full h-full object-cover"
             />
           </div>
@@ -65,13 +38,12 @@ export default function ProductsPage() {
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-8 gap-4">
               <div className="flex gap-2 overflow-x-auto pb-2 sm:pb-0 w-full sm:w-auto scrollbar-hide">
                 {["Semua", "Kopi", "Wisata", "Pertanian", "Merchandise"].map((category, idx) => (
-                  <button 
+                  <button
                     key={idx}
-                    className={`whitespace-nowrap px-4 py-2 rounded-full text-sm font-medium transition-colors ${
-                      idx === 0 
-                      ? "bg-brand-green text-white" 
+                    className={`whitespace-nowrap px-4 py-2 rounded-full text-sm font-medium transition-colors ${idx === 0
+                      ? "bg-brand-green text-white"
                       : "bg-white text-gray-600 hover:bg-gray-100 border border-gray-200"
-                    }`}
+                      }`}
                   >
                     {category}
                   </button>
@@ -90,14 +62,15 @@ export default function ProductsPage() {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
               {allProducts.map((product) => (
-                <div 
+                <Link
+                  href={`/products/${product.id}`}
                   key={product.id}
-                  className="bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-1 border border-gray-100 flex flex-col group"
+                  className="bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-1 border border-gray-100 flex flex-col group block"
                 >
                   <div className="relative h-56 w-full overflow-hidden">
-                    <img 
-                      src={product.image} 
-                      alt={product.title} 
+                    <img
+                      src={product.image}
+                      alt={product.title}
                       className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                     />
                     {product.badge && (
@@ -113,12 +86,12 @@ export default function ProductsPage() {
                     </p>
                     <div className="mt-auto flex justify-between items-center">
                       <span className="font-bold text-brand-green text-lg">{product.price}</span>
-                      <button className="text-sm bg-brand-green text-white px-4 py-2 rounded-lg hover:bg-brand-darkgreen transition-colors shadow-sm">
+                      <div className="text-sm bg-brand-green text-white px-4 py-2 rounded-lg hover:bg-brand-darkgreen transition-colors shadow-sm">
                         Beli
-                      </button>
+                      </div>
                     </div>
                   </div>
-                </div>
+                </Link>
               ))}
             </div>
           </div>

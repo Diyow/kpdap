@@ -19,7 +19,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="id" className={`${inter.variable} scroll-smooth antialiased`}>
+    <html lang="id" className={`${inter.variable} scroll-smooth antialiased`} data-scroll-behavior="smooth">
       <body className="min-h-screen flex flex-col font-sans">
         {children}
         <FloatingWhatsApp />
