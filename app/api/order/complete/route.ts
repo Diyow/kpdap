@@ -1,6 +1,9 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 
+export const runtime = 'edge';
+
+
 export async function POST(request: Request) {
   try {
     const { order_id, completion_token } = await request.json();

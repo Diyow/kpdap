@@ -1,5 +1,8 @@
 import { NextResponse } from 'next/server';
 
+export const runtime = 'edge';
+
+
 // Simple in-memory rate limiter (Best effort for serverless)
 const rateLimit = new Map<string, { count: number, timestamp: number }>();
 const RATE_LIMIT_MAX = 5; // max 5 requests

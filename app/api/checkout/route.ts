@@ -4,6 +4,9 @@ import { cookies } from 'next/headers';
 // @ts-ignore
 import midtransClient from 'midtrans-client';
 
+export const runtime = 'edge';
+
+
 // Simple in-memory rate limiter (Best effort for serverless)
 const rateLimit = new Map<string, { count: number, timestamp: number }>();
 const RATE_LIMIT_MAX = 5; // max 5 requests

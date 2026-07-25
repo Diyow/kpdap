@@ -7,6 +7,9 @@ import AdvantagesSection from "./components/AdvantagesSection";
 import ProductsSection from "./components/ProductsSection";
 import Footer from "./components/Footer";
 
+export const runtime = 'edge';
+
+
 export default function Home() {
   return (
     <>

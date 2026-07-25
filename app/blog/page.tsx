@@ -7,6 +7,9 @@ import Image from "next/image";
 import { ArrowRight, Calendar, User } from "lucide-react";
 import BusinessUnitsSection from "../components/BusinessUnitsSection";
 
+export const runtime = 'edge';
+
+
 export default async function BlogPage() {
   const cookieStore = await cookies();
   const supabase = createClient(cookieStore);

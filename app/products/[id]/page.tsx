@@ -8,6 +8,9 @@ import { products as staticProducts } from "../../data";
 import ProductGallery from "../../components/ProductGallery";
 import ProductOptions from "../../components/ProductOptions";
 import { ArrowLeft } from "lucide-react";
+
+export const runtime = 'edge';
+
 export default async function ProductDetailPage({
   params,
 }: {

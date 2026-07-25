@@ -3,6 +3,9 @@ import { createClient } from '@/utils/supabase/server';
 import { cookies } from 'next/headers';
 import crypto from 'crypto';
 
+export const runtime = 'edge';
+
+
 export async function POST(request: Request) {
   try {
     const body = await request.json();

@@ -8,6 +8,9 @@ import { notFound } from "next/navigation";
 import ReactMarkdown from "react-markdown";
 import type { Metadata } from 'next'
 
+export const runtime = 'edge';
+
+
 export const revalidate = 60; // Revalidate every minute
 
 type Props = {
