@@ -5,23 +5,25 @@ export const contactInfo = {
 
 export const navLinks = [
   { label: "Halaman Utama", href: "/" },
-  { 
-    label: "Tentang Kami", 
+  {
+    label: "Tentang Kami",
     href: "/#about",
     subLinks: [
       { label: "Halaman Tentang Kami", href: "/about" }
     ]
   },
-  { 
-    label: "Produk Kami", 
+  {
+    label: "Produk Kami",
     href: "/#products",
     subLinks: [
       { label: "Semua Produk", href: "/products" }
     ]
   },
-  { label: "Berita", href: "/#news" },
-  { label: "Member Portal", href: "/#portal" },
-  { label: "Kontak", href: "/#contact" },
+  {
+    label: "Berita",
+    href: "/blog",
+  },
+  { label: "Cek Pesanan", href: "/track-order" },
 ];
 
 export const businessUnits = [
@@ -100,8 +102,11 @@ export const footerLinks = {
   quickLinks: [
     { label: "Tentang Kami", href: "/#about" },
     { label: "Produk Kami", href: "/products" },
-    { label: "Transparansi", href: "/#transparency" },
-    { label: "Penjelasan Website", href: "/#website" },
-    { label: "Kontak", href: "/#contact" },
+    { label: "Berita", href: "/blog" },
+    { label: "Cek Pesanan", href: "/track-order" },
+    // TODO: Add these back when the content/pages are ready
+    // { label: "Kontak", href: "/#contact" },
+    // { label: "Transparansi (Legalitas, RAT, AD/ART)", href: "/#transparency" },
+    // { label: "Penjelasan Website (Syarat & Ketentuan, Privasi)", href: "/#website" },
   ],
 };

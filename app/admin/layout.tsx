@@ -3,12 +3,25 @@ import React from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { LogOut, Home } from "lucide-react";
+import { LogOut, Home, User } from "lucide-react";
 import { createClient } from "@/utils/supabase/client";
+import RealtimeOrderNotification from "./components/RealtimeOrderNotification";
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
+  const [userEmail, setUserEmail] = React.useState<string | null>(null);
+
+  React.useEffect(() => {
+    const fetchUser = async () => {
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        setUserEmail(user.email ?? null);
+      }
+    };
+    fetchUser();
+  }, []);
 
   // If we are on the login page, don't show the admin topbar
   if (pathname === "/admin/login") {
@@ -23,6 +36,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   return (
     <div className="min-h-screen bg-brand-lightbg flex flex-col font-sans">
+      <RealtimeOrderNotification />
       {/* Topbar matching main Header.tsx */}
       <header className="bg-white shadow-sm py-4 px-4 md:px-8 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto flex justify-between items-center">
@@ -42,6 +56,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           </Link>
           
           <div className="flex items-center gap-4">
+            {userEmail && (
+              <span className="hidden md:inline text-sm font-medium text-gray-500 mr-2 border-r border-gray-200 pr-4">
+                {userEmail}
+              </span>
+            )}
             <Link
               href="/"
               className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-600 hover:text-brand-green hover:bg-brand-lightbg rounded-lg transition-colors"
@@ -64,9 +83,17 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       {/* Main Content */}
       <main className="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8">
         <div className="mb-8">
-          <h1 className="text-3xl font-extrabold text-brand-text tracking-tight">
-            Dasbor Admin
-          </h1>
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <h1 className="text-3xl font-extrabold text-brand-text tracking-tight">
+              Dasbor Admin
+            </h1>
+            {userEmail && (
+              <div className="md:hidden inline-flex items-center gap-2 text-sm text-gray-600 bg-white border border-gray-100 rounded-lg py-2 px-3 shadow-sm w-fit">
+                <User size={16} className="text-brand-green" />
+                <span className="truncate max-w-[200px]">{userEmail}</span>
+              </div>
+            )}
+          </div>
         </div>
         {children}
       </main>

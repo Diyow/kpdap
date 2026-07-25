@@ -16,9 +16,11 @@ export default function AdvantagesSection() {
           {advantages.map((adv, index) => (
             <div 
               key={index}
-              className="bg-[#389a61] border border-[#48a970] p-8 rounded-xl shadow-sm text-white"
+              className="bg-[#389a61] border border-[#48a970] p-8 rounded-xl shadow-sm text-white hover:bg-[#3f9d65] hover:border-yellow-400/50 transition-colors duration-300"
             >
-              <div className="text-yellow-400 font-bold text-5xl mb-4">{adv.number}</div>
+              <div className="text-yellow-400 font-bold text-5xl mb-4">
+                {adv.number}
+              </div>
               <h3 className="text-xl font-bold mb-3">{adv.title}</h3>
               <p className="text-green-50 text-sm leading-relaxed">{adv.description}</p>
             </div>

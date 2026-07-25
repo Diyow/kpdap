@@ -2,16 +2,33 @@
 
 import { useState } from "react";
 import { Minus, Plus, ShoppingCart } from "lucide-react";
+import { useCartStore } from "@/store/useCartStore";
+import toast from "react-hot-toast";
+
+type Variation = {
+  name: string;
+  price: number;
+};
 
 type ProductOptionsProps = {
-  variations: string[];
-  price: string;
+  product: {
+    id: number;
+    title: string;
+    image: string;
+  };
+  variations: any[];
+  price: number;
   stock: number;
 };
 
-export default function ProductOptions({ variations, price, stock }: ProductOptionsProps) {
-  const [selectedVariation, setSelectedVariation] = useState<string>(variations?.[0] || "");
+export default function ProductOptions({ product, variations, price, stock }: ProductOptionsProps) {
+  const normalizedVariations: Variation[] = (variations || []).map(v => 
+    typeof v === 'string' ? { name: v, price: price } : v
+  );
+
+  const [selectedVariationName, setSelectedVariationName] = useState<string>(normalizedVariations?.[0]?.name || "");
   const [quantity, setQuantity] = useState(1);
+  const { addItem, updateQuantity, setIsCartOpen } = useCartStore();
 
   const increment = () => {
     if (quantity < stock) setQuantity(quantity + 1);
@@ -23,30 +40,41 @@ export default function ProductOptions({ variations, price, stock }: ProductOpti
 
   const isOutOfStock = stock <= 0;
 
+  const activeVariation = normalizedVariations.find(v => v.name === selectedVariationName);
+  const displayPrice = activeVariation ? activeVariation.price : price;
+
+  const formatRupiah = (p: number) => {
+    return new Intl.NumberFormat('id-ID', {
+      style: 'currency',
+      currency: 'IDR',
+      minimumFractionDigits: 0
+    }).format(p);
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-4">
-        <p className="text-3xl font-bold text-brand-green">{price}</p>
+        <p className="text-3xl font-bold text-brand-green">{formatRupiah(displayPrice)}</p>
         <span className={`text-sm font-medium px-3 py-1 rounded-full ${isOutOfStock ? "bg-red-100 text-red-700" : "bg-green-100 text-green-700"}`}>
           {isOutOfStock ? "Habis Terjual" : `Sisa ${stock} barang`}
         </span>
       </div>
 
-      {variations && variations.length > 0 && (
+      {normalizedVariations && normalizedVariations.length > 0 && (
         <div>
           <h3 className="text-sm font-semibold text-gray-800 mb-3">Pilih Variasi:</h3>
           <div className="flex flex-wrap gap-2">
-            {variations.map((v, i) => (
+            {normalizedVariations.map((v, i) => (
               <button
                 key={i}
-                onClick={() => setSelectedVariation(v)}
+                onClick={() => setSelectedVariationName(v.name)}
                 className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-                  selectedVariation === v
+                  selectedVariationName === v.name
                     ? "bg-brand-green text-white shadow-md border border-brand-green"
                     : "bg-white text-gray-600 border border-gray-200 hover:border-brand-green hover:text-brand-green"
                 }`}
               >
-                {v}
+                {v.name}
               </button>
             ))}
           </div>
@@ -68,7 +96,28 @@ export default function ProductOptions({ variations, price, stock }: ProductOpti
         </div>
       </div>
 
-      <button disabled={isOutOfStock} className="w-full bg-brand-green text-white font-bold text-lg py-4 rounded-xl hover:bg-brand-darkgreen transition-colors shadow-md hover:shadow-lg flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed mt-8">
+      <button 
+        disabled={isOutOfStock} 
+        onClick={() => {
+          const title = selectedVariationName ? `${product.title} (${selectedVariationName})` : product.title;
+          
+          addItem(
+            {
+              id: product.id,
+              title: title,
+              price: displayPrice,
+              image: product.image,
+            },
+            selectedVariationName,
+            displayPrice,
+            quantity
+          );
+          
+          toast.success(`${title} ditambahkan ke keranjang!`);
+          setIsCartOpen(true);
+        }}
+        className="w-full bg-brand-green text-white font-bold text-lg py-4 rounded-xl hover:bg-brand-darkgreen transition-colors shadow-md hover:shadow-lg flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed mt-8"
+      >
         <ShoppingCart size={20} />
         {isOutOfStock ? "Stok Habis" : "Beli Sekarang"}
       </button>

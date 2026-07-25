@@ -12,6 +12,10 @@
 
 # testing
 /coverage
+/test-results
+/playwright-report
+/blob-report
+/playwright/.cache
 
 # next.js
 /.next/
@@ -22,7 +26,10 @@
 
 # misc
 .DS_Store
+Thumbs.db
 *.pem
+.eslintcache
+supabase_setup.sql
 
 # debug
 npm-debug.log*

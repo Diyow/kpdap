@@ -3,16 +3,22 @@ import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { contactInfo as defaultContact, navLinks } from "../data";
-import { Phone, Mail, User, MessageCircle, Menu, X } from "lucide-react";
+import { Phone, Mail, User, MessageCircle, Menu, X, ShoppingBag } from "lucide-react";
 import { createClient } from "@/utils/supabase/client";
+import { useCartStore } from "@/store/useCartStore";
+import CartDrawer from "./CartDrawer";
 
 export default function Header() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [expandedMobileMenu, setExpandedMobileMenu] = useState<string | null>(null);
 
   const [contact, setContact] = useState({ phone: defaultContact.phone, email: defaultContact.email });
+  const [mounted, setMounted] = useState(false);
+  
+  const { items, setIsCartOpen } = useCartStore();
 
   useEffect(() => {
+    setMounted(true);
     const fetchContact = async () => {
       const supabase = createClient();
       const { data } = await supabase.from("contact_info").select("*").eq("id", 1).single();
@@ -34,15 +40,15 @@ export default function Header() {
       {/* Top Bar */}
       <div className="bg-[#5a4634] text-white text-xs py-2 px-4 md:px-8 flex flex-col sm:flex-row justify-between items-center gap-2">
         <div className="flex flex-wrap justify-center gap-4">
-          <div className="flex items-center gap-1">
+          <a href={`tel:${contact.phone}`} className="flex items-center gap-1 hover:underline">
             <Phone size={12} />
             <span>{contact.phone}</span>
-          </div>
-          <div className="flex items-center gap-1">
+          </a>
+          <a href={`mailto:${contact.email}`} className="flex items-center gap-1 hover:underline">
             <Mail size={12} />
             <span className="hidden sm:inline">{contact.email}</span>
             <span className="sm:hidden">Email Us</span>
-          </div>
+          </a>
         </div>
         <div className="flex items-center gap-4">
           <Link href="/admin" className="flex items-center gap-1 hover:underline">
@@ -101,12 +107,24 @@ export default function Header() {
             ))}
           </ul>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-4">
+            <button 
+              onClick={() => setIsCartOpen(true)}
+              className="relative p-2 text-gray-600 hover:text-brand-green transition-colors"
+            >
+              <ShoppingBag size={22} />
+              {mounted && items.length > 0 && (
+                <span className="absolute top-0 right-0 bg-red-500 text-white text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center translate-x-1 -translate-y-1">
+                  {items.reduce((acc, item) => acc + item.quantity, 0)}
+                </span>
+              )}
+            </button>
+            <div className="flex items-center gap-2">
             <a
               href={whatsappUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="hidden sm:flex bg-brand-green hover:bg-brand-darkgreen text-white px-4 py-2 rounded-md text-sm font-medium items-center gap-2 transition-colors"
+              className="hidden sm:flex bg-[#25D366] hover:bg-[#128C7E] text-white px-4 py-2 rounded-md text-sm font-medium items-center gap-2 transition-colors"
             >
               <MessageCircle size={16} />
               Chat
@@ -119,8 +137,9 @@ export default function Header() {
             </button>
           </div>
         </div>
+      </div>
 
-        {/* Mobile Menu */}
+      {/* Mobile Menu */}
         {isMobileMenuOpen && (
           <div className="lg:hidden absolute top-full left-0 w-full bg-white shadow-lg border-t border-gray-100 py-4 px-4 flex flex-col gap-4">
             <ul className="flex flex-col gap-4 text-sm font-medium text-gray-700">
@@ -167,7 +186,7 @@ export default function Header() {
               href={whatsappUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="bg-brand-green hover:bg-brand-darkgreen text-white px-4 py-2 rounded-md text-sm font-medium flex items-center justify-center gap-2 transition-colors w-full"
+              className="bg-[#25D366] hover:bg-[#128C7E] text-white px-4 py-2 rounded-md text-sm font-medium flex items-center justify-center gap-2 transition-colors w-full"
             >
               <MessageCircle size={16} />
               Chat
@@ -175,6 +194,7 @@ export default function Header() {
           </div>
         )}
       </nav>
+      <CartDrawer />
     </header>
   );
 }

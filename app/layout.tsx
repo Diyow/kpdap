@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import FloatingWhatsApp from "./components/FloatingWhatsApp";
+import FloatingCartButton from "./components/FloatingCartButton";
+import { Toaster } from "react-hot-toast";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -23,6 +25,8 @@ export default function RootLayout({
       <body className="min-h-screen flex flex-col font-sans">
         {children}
         <FloatingWhatsApp />
+        <FloatingCartButton />
+        <Toaster position="bottom-right" />
       </body>
     </html>
   );

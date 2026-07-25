@@ -1,18 +1,27 @@
-import React from "react";
+"use client";
+
+import React, { useEffect, useState } from "react";
 import { footerLinks } from "../data";
 import { MapPin, Phone, Mail } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
-import { createClient } from "@/utils/supabase/server";
-import { cookies } from "next/headers";
+import { createClient } from "@/utils/supabase/client";
 import { contactInfo as fallbackContact } from "../data";
 
-export default async function Footer() {
-  const cookieStore = await cookies();
-  const supabase = createClient(cookieStore);
-  
-  const { data: contactData } = await supabase.from("contact_info").select("*").eq("id", 1).single();
-  const contactInfo = contactData || fallbackContact;
+export default function Footer() {
+  const [contactInfo, setContactInfo] = useState(fallbackContact);
+
+  useEffect(() => {
+    const fetchContact = async () => {
+      const supabase = createClient();
+      const { data: contactData } = await supabase.from("contact_info").select("*").eq("id", 1).single();
+      if (contactData) {
+        setContactInfo(contactData);
+      }
+    };
+    fetchContact();
+  }, []);
+
 
   return (
     <footer className="bg-brand-brown text-[#d0c9c3] pt-16 pb-8 px-4 md:px-8 border-t-[8px] border-brand-green">
@@ -90,8 +99,8 @@ export default async function Footer() {
       <div className="max-w-7xl mx-auto border-t border-[#655546] pt-8 flex flex-col md:flex-row justify-between items-center gap-4 text-xs">
         <p>&copy; 2026 Koperasi Produsen Dharma Asastha Partiwi. Hak cipta dilindungi.</p>
         <div className="flex gap-4">
-          <a href="#" className="hover:text-white transition-colors">Kebijakan Privasi</a>
-          <a href="#" className="hover:text-white transition-colors">Syarat & Ketentuan</a>
+          <Link href="/privacy-policy" className="hover:text-white transition-colors">Kebijakan Privasi</Link>
+          <Link href="/terms-of-service" className="hover:text-white transition-colors">Syarat & Ketentuan</Link>
         </div>
       </div>
     </footer>

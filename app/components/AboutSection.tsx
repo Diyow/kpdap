@@ -3,14 +3,14 @@ import Link from "next/link";
 
 export default function AboutSection() {
   return (
-    <section id="about" className="py-20 px-4 md:px-8 bg-brand-lightbg">
+    <section id="about" className="py-20 px-4 md:px-8 bg-[#fdfbf7]">
       <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center gap-12">
         {/* Image Side */}
         <div className="w-full md:w-1/2 relative rounded-2xl overflow-hidden shadow-lg">
           <img
             src="about.webp"
             alt="Petani Kopi"
-            className="w-full h-[400px] object-cover"
+            className="w-full h-[300px] sm:h-[400px] lg:h-[500px] object-cover"
           />
           <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/70 to-transparent pointer-events-none"></div>
           <div className="absolute bottom-4 left-4 text-white px-4 py-2 font-medium text-lg">
@@ -25,7 +25,7 @@ export default function AboutSection() {
             <span>Tentang Kami</span>
           </div>
 
-          <h2 className="text-3xl md:text-4xl font-bold text-brand-text mb-6 leading-tight">
+          <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-brand-text mb-4 md:mb-6 leading-tight">
             Dedikasi dari Jantung Pupuan untuk Kopi Robusta Terbaik
           </h2>
 

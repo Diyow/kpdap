@@ -3,6 +3,9 @@
 import { useEffect, useState } from "react";
 import { createClient } from "@/utils/supabase/client";
 import { Loader2, Phone, Mail } from "lucide-react";
+import { logAdminActivity } from "../actions/logger";
+
+import { Skeleton } from "@/app/components/ui/Skeleton";
 
 export default function ContactInfoManager() {
   const [phone, setPhone] = useState("");
@@ -40,6 +43,7 @@ export default function ContactInfoManager() {
       if (error) {
       setMessage({ type: 'error', text: 'Gagal memperbarui info kontak. ' + error.message });
     } else {
+      await logAdminActivity("UPDATE_CONTACT", "Memperbarui info kontak");
       setMessage({ type: 'success', text: 'Info kontak berhasil diperbarui!' });
       setTimeout(() => setMessage(null), 3000);
     }
@@ -47,8 +51,26 @@ export default function ContactInfoManager() {
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center h-64">
-        <Loader2 className="animate-spin text-brand-green" size={32} />
+      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
+        <div className="mb-8">
+          <Skeleton className="h-8 w-48 mb-2" />
+          <Skeleton className="h-4 w-96" />
+        </div>
+        <div className="space-y-6 max-w-xl">
+          <div className="bg-gray-50/50 p-6 rounded-xl border border-gray-100 space-y-6">
+            <div>
+              <Skeleton className="h-4 w-48 mb-2" />
+              <Skeleton className="h-10 w-full rounded-lg" />
+            </div>
+            <div>
+              <Skeleton className="h-4 w-32 mb-2" />
+              <Skeleton className="h-10 w-full rounded-lg" />
+            </div>
+          </div>
+          <div className="pt-2">
+            <Skeleton className="h-10 w-48 rounded-lg" />
+          </div>
+        </div>
       </div>
     );
   }
@@ -63,13 +85,13 @@ export default function ContactInfoManager() {
       </div>
 
       {message && (
-        <div className={`p-4 rounded-lg mb-6 text-sm font-medium ${message.type === 'success' ? 'bg-green-50 text-green-800 border border-green-200' : 'bg-red-50 text-red-800 border border-red-200'}`}>
+        <div className={`p-4 rounded-lg mb-6 text-sm font-medium ${message.type === 'success' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-red-50 text-red-700 border border-red-200'}`}>
           {message.text}
         </div>
       )}
 
       <form onSubmit={handleSave} className="space-y-6 max-w-xl">
-        <div className="bg-brand-lightbg p-6 rounded-xl border border-gray-100 space-y-6">
+        <div className="bg-gray-50/50 p-6 rounded-xl border border-gray-100 space-y-6">
           <div>
             <label className="flex items-center gap-2 text-sm font-semibold text-brand-text mb-2">
               <Phone size={16} className="text-brand-green" />
