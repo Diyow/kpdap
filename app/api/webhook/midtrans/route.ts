@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@/utils/supabase/server';
 import { cookies } from 'next/headers';
-import crypto from 'crypto';
 
 export const runtime = 'edge';
 
@@ -21,10 +20,15 @@ export async function POST(request: Request) {
       payment_type
     } = body;
 
-    // Verify signature
+    // Verify signature using Web Crypto API (Edge Runtime Compatible)
     const serverKey = process.env.MIDTRANS_SERVER_KEY || 'SB-Mid-server-YOUR_SERVER_KEY_HERE';
     const payloadStr = order_id + status_code + gross_amount + serverKey;
-    const generatedSignature = crypto.createHash('sha512').update(payloadStr).digest('hex');
+    
+    const encoder = new TextEncoder();
+    const data = encoder.encode(payloadStr);
+    const hashBuffer = await crypto.subtle.digest('SHA-512', data);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    const generatedSignature = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
 
     if (generatedSignature !== signature_key) {
       return NextResponse.json({ error: 'Invalid signature' }, { status: 400 });

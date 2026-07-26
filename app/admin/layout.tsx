@@ -18,10 +18,12 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
         setUserEmail(user.email ?? null);
+      } else if (pathname !== "/admin/login") {
+        router.push("/admin/login");
       }
     };
     fetchUser();
-  }, []);
+  }, [pathname, router]);
 
   // If we are on the login page, don't show the admin topbar
   if (pathname === "/admin/login") {
