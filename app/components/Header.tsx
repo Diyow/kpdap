@@ -64,7 +64,7 @@ export default function Header() {
           <Link href="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
             <div className="w-10 h-10 shrink-0 relative">
               <Image
-                src="/KPDAP Logo.webp"
+                src="/logo.webp"
                 alt="KPDAP Logo"
                 fill
                 sizes="40px"

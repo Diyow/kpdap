@@ -45,7 +45,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           <Link href="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
             <div className="w-10 h-10 shrink-0 relative">
               <Image
-                src="/KPDAP Logo.webp"
+                src="/logo.webp"
                 alt="KPDAP Logo"
                 fill
                 className="object-contain"

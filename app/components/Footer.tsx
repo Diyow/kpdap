@@ -31,7 +31,7 @@ export default function Footer() {
           <div className="flex items-center gap-2 mb-6">
             <div className="w-12 h-12 relative bg-white rounded-full p-1 flex items-center justify-center shrink-0">
               <Image
-                src="/KPDAP Logo.webp"
+                src="/logo.webp"
                 alt="KPDAP Logo"
                 fill
                 className="object-contain p-1.5"

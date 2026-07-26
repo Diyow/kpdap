@@ -36,7 +36,7 @@ export default function AdminLogin() {
         <div className="flex flex-col items-center">
           <div className="w-20 h-20 shrink-0 relative mb-4">
             <Image
-              src="/KPDAP Logo.webp"
+              src="/logo.webp"
               alt="KPDAP Logo"
               fill
               className="object-contain"
