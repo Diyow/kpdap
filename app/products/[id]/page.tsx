@@ -8,6 +8,8 @@ import ProductGallery from "../../components/ProductGallery";
 import ProductOptions from "../../components/ProductOptions";
 import { ArrowLeft } from "lucide-react";
 
+export const runtime = 'edge';
+
 export default async function ProductDetailPage({
   params,
 }: {
@@ -17,7 +19,7 @@ export default async function ProductDetailPage({
   
   const supabase = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!
   );
 
   // Try fetching from supabase

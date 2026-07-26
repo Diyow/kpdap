@@ -7,6 +7,8 @@ import { notFound } from "next/navigation";
 import ReactMarkdown from "react-markdown";
 import type { Metadata } from 'next'
 
+export const runtime = 'edge';
+
 export const revalidate = 60; // Revalidate every minute
 
 type Props = {
@@ -17,7 +19,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
   const supabase = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!
   );
   const { data: article } = await supabase
     .from("articles")
@@ -41,7 +43,7 @@ export default async function ArticlePage({ params }: Props) {
   
   const supabase = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!
   );
   const { data: article } = await supabase
     .from("articles")
