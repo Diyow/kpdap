@@ -1,7 +1,9 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import DashboardSummary from "./components/DashboardSummary";
+import dynamic from 'next/dynamic';
+
+const DashboardSummary = dynamic(() => import("./components/DashboardSummary"), { ssr: false });
 import ProductsManager from "./components/ProductsManager";
 import ContactInfoManager from "./components/ContactInfoManager";
 import AdminsManager from "./components/AdminsManager";

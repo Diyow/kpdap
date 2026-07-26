@@ -1,8 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@/utils/supabase/server';
 import { cookies } from 'next/headers';
-// @ts-ignore
-import midtransClient from 'midtrans-client';
 
 export const runtime = 'edge';
 
@@ -149,15 +147,14 @@ export async function POST(request: Request) {
 
     if (itemsError) throw new Error(itemsError.message);
 
-    // 3. Initialize Midtrans Snap API
+    // 3. Initialize Midtrans Snap API via native fetch (Edge Compatible)
     const isProduction = process.env.NEXT_PUBLIC_MIDTRANS_IS_PRODUCTION === 'true';
-    const snap = new midtransClient.Snap({
-      isProduction,
-      serverKey: process.env.MIDTRANS_SERVER_KEY || 'SB-Mid-server-YOUR_SERVER_KEY_HERE',
-      clientKey: process.env.NEXT_PUBLIC_MIDTRANS_CLIENT_KEY || 'SB-Mid-client-YOUR_CLIENT_KEY_HERE'
-    });
-
-    // 4. Create Transaction params
+    const serverKey = process.env.MIDTRANS_SERVER_KEY || 'SB-Mid-server-YOUR_SERVER_KEY_HERE';
+    const snapUrl = isProduction 
+      ? 'https://app.midtrans.com/snap/v1/transactions' 
+      : 'https://app.sandbox.midtrans.com/snap/v1/transactions';
+      
+    const authString = btoa(`${serverKey}:`);
     const parameter = {
       transaction_details: {
         order_id: orderId,
@@ -184,8 +181,23 @@ export async function POST(request: Request) {
       ]
     };
 
-    // 5. Get Snap Token
-    const transaction = await snap.createTransaction(parameter);
+    // 5. Get Snap Token using fetch
+    const response = await fetch(snapUrl, {
+      method: 'POST',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+        'Authorization': `Basic ${authString}`
+      },
+      body: JSON.stringify(parameter)
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`Midtrans API Error: ${response.status} ${errorText}`);
+    }
+
+    const transaction = await response.json();
     
     // Update order with payment token
     await supabase.from('orders').update({ payment_token: transaction.token }).eq('id', orderId);
