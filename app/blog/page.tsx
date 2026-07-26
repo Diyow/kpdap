@@ -1,5 +1,4 @@
-import { createClient } from "@/utils/supabase/server";
-import { cookies } from "next/headers";
+import { createClient } from "@supabase/supabase-js";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import Link from "next/link";
@@ -7,12 +6,11 @@ import Image from "next/image";
 import { ArrowRight, Calendar, User } from "lucide-react";
 import BusinessUnitsSection from "../components/BusinessUnitsSection";
 
-export const runtime = 'edge';
-
-
 export default async function BlogPage() {
-  const cookieStore = await cookies();
-  const supabase = createClient(cookieStore);
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  );
   const { data: articles } = await supabase
     .from("articles")
     .select("*")
