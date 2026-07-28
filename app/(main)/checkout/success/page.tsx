@@ -1,8 +1,6 @@
 "use client";
 
 import React, { useEffect, useState, Suspense } from "react";
-import Header from "../../components/Header";
-import Footer from "../../components/Footer";
 import Link from "next/link";
 import Script from "next/script";
 import { CheckCircle, Home, FileText, Clock, XCircle, RefreshCw, Truck, Package, Ban, CreditCard } from "lucide-react";
@@ -10,7 +8,7 @@ import toast from "react-hot-toast";
 import { useSearchParams } from "next/navigation";
 import { createClient } from "@/utils/supabase/client";
 import { Skeleton } from "@/app/components/ui/Skeleton";
-import ConfirmModal from "../../components/ConfirmModal";
+import ConfirmModal from "@/app/components/ConfirmModal";
 import { useCartStore } from "@/store/useCartStore";
 
 declare global {
@@ -22,7 +20,11 @@ declare global {
 function CheckoutSuccessContent() {
   const searchParams = useSearchParams();
   const orderId = searchParams.get("order_id");
-  const { setPendingOrderId } = useCartStore();
+  const tokenUrl = searchParams.get("token");
+  const { setPendingOrderId, pendingOrderToken } = useCartStore();
+  
+  // Use token from URL if available, otherwise from store
+  const activeToken = tokenUrl || pendingOrderToken;
   
   const [order, setOrder] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -59,7 +61,7 @@ function CheckoutSuccessContent() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
           order_id: orderId,
-          completion_token: order?.completion_token 
+          completion_token: activeToken 
         })
       });
       
@@ -82,7 +84,10 @@ function CheckoutSuccessContent() {
       const res = await fetch('/api/checkout/cancel', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ order_id: orderId })
+        body: JSON.stringify({ 
+          order_id: orderId,
+          completion_token: activeToken
+        })
       });
       if (res.ok) {
         toast.success("Pesanan berhasil dibatalkan. Stok telah dikembalikan.");
@@ -185,8 +190,7 @@ function CheckoutSuccessContent() {
 
   return (
     <>
-      <Header />
-      <main className="flex-1 w-full bg-brand-lightbg flex items-center justify-center py-20 px-4">
+            <main className="flex-1 w-full bg-brand-lightbg flex items-center justify-center py-20 px-4">
         <div className="bg-white p-8 md:p-12 rounded-3xl shadow-sm border border-gray-100 max-w-xl w-full text-center">
           
           {loading ? (
@@ -321,8 +325,7 @@ function CheckoutSuccessContent() {
           </div>
         </div>
       </main>
-      <Footer />
-      <Script 
+            <Script 
         src={process.env.NEXT_PUBLIC_MIDTRANS_IS_PRODUCTION === 'true' ? "https://app.midtrans.com/snap/snap.js" : "https://app.sandbox.midtrans.com/snap/snap.js"}
         data-client-key={process.env.NEXT_PUBLIC_MIDTRANS_CLIENT_KEY || 'SB-Mid-client-YOUR_CLIENT_KEY_HERE'}
       />

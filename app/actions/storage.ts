@@ -35,6 +35,9 @@ const extractFilePath = (url: string, bucketName: string) => {
   return null;
 };
 
+import { createClient as createServerClient } from "@/utils/supabase/server";
+import { cookies } from "next/headers";
+
 /**
  * Deletes files from a Supabase storage bucket given their public URLs
  */
@@ -42,6 +45,25 @@ export async function deleteStorageFiles(urls: string[], bucketName: string) {
   if (!urls || urls.length === 0) return { success: true };
 
   try {
+    // 1. Authenticate user
+    const cookieStore = await cookies();
+    const userClient = createServerClient(cookieStore);
+    const { data: { user } } = await userClient.auth.getUser();
+
+    if (!user) {
+      return { success: false, error: "Unauthorized" };
+    }
+
+    // 2. Verify Admin Role
+    const { data: adminRole } = await userClient
+      .from("admin_roles")
+      .select("role")
+      .eq("id", user.id)
+      .single();
+
+    if (!adminRole) {
+      return { success: false, error: "Forbidden: Admin access required" };
+    }
     const filePaths = urls
       .map(url => extractFilePath(url, bucketName))
       .filter(Boolean) as string[];

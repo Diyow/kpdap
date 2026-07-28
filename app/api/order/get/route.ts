@@ -111,6 +111,12 @@ export async function POST(request: Request) {
     }
     // --- END SYNC WORKAROUND ---
 
+    // SECURITY FIX: Never return the completion_token to the client.
+    // Otherwise, an attacker could fetch the order and use the token to cancel it.
+    if (data && 'completion_token' in data) {
+      delete data.completion_token;
+    }
+
     return NextResponse.json({ order: data });
   } catch (error: any) {
     console.error('Fetch order error:', error);

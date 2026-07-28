@@ -1,11 +1,9 @@
 import { createClient } from "@/utils/supabase/server";
 import { cookies } from "next/headers";
-import Header from "../components/Header";
-import Footer from "../components/Footer";
 import Link from "next/link";
 import Image from "next/image";
 import { ArrowRight, Calendar, User } from "lucide-react";
-import BusinessUnitsSection from "../components/BusinessUnitsSection";
+import BusinessUnitsSection from "@/app/components/BusinessUnitsSection";
 
 export default async function BlogPage() {
   const cookieStore = await cookies();
@@ -19,8 +17,7 @@ export default async function BlogPage() {
 
   return (
     <>
-      <Header />
-      <main className="min-h-screen bg-gray-50 flex flex-col">
+            <main className="min-h-screen bg-gray-50 flex flex-col">
         {/* Hero Section */}
         <div className="bg-brand-darkgreen text-white py-16 px-4 md:px-8 relative overflow-hidden text-center">
           <div className="absolute inset-0 opacity-20">
@@ -92,7 +89,6 @@ export default async function BlogPage() {
 
         <BusinessUnitsSection />
       </main>
-      <Footer />
-    </>
+          </>
   );
 }

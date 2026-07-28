@@ -3,16 +3,16 @@
 import React, { useState, useEffect } from "react";
 import { useCartStore } from "@/store/useCartStore";
 import { createClient } from "@/utils/supabase/client";
-import { contactInfo as fallbackContact } from "../data";
-import Header from "../components/Header";
-import Footer from "../components/Footer";
+import { contactInfo as fallbackContact } from "@/app/data";
 import Image from "next/image";
 import Link from "next/link";
 import Script from "next/script";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, ShoppingBag, CreditCard, Loader2, AlertTriangle } from "lucide-react";
 import toast from "react-hot-toast";
-import ConfirmModal from "../components/ConfirmModal";
+import ConfirmModal from "@/app/components/ConfirmModal";
+import BackLink from "@/app/components/BackLink";
+import EmptyState from "@/app/components/EmptyState";
 
 declare global {
   interface Window {
@@ -21,7 +21,7 @@ declare global {
 }
 
 export default function CheckoutPage() {
-  const { items, getCartTotal, clearCart, pendingOrderId, setPendingOrderId } = useCartStore();
+  const { items, getCartTotal, clearCart, pendingOrderId, pendingOrderToken, setPendingOrderId } = useCartStore();
   const [mounted, setMounted] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
@@ -153,6 +153,12 @@ export default function CheckoutPage() {
             province: provinces.find(p => p.province_id === selectedProvince)?.province || "",
             city: cities.find(c => c.city_id === selectedCity)?.city_name || ""
           },
+          shipping_details: {
+            destination: selectedCity,
+            weight: getTotalWeight(),
+            courier: selectedCourier,
+            service: selectedService?.service || "",
+          },
           total_amount: getCartTotal() + (selectedService ? selectedService.cost[0].value : 0),
           shipping_cost: selectedService ? selectedService.cost[0].value : 0,
           courier: selectedCourier ? `${selectedCourier.toUpperCase()} - ${selectedService.service}` : null
@@ -165,17 +171,17 @@ export default function CheckoutPage() {
         throw new Error(data.error || 'Failed to initialize payment');
       }
 
-      setPendingOrderId(data.order_id);
+      setPendingOrderId(data.order_id, data.completion_token);
 
       // Show Midtrans Snap Popup
       window.snap.pay(data.token, {
         onSuccess: function (result: any) {
           clearCart();
-          router.push('/checkout/success?order_id=' + data.order_id);
+          router.push('/checkout/success?order_id=' + data.order_id + '&token=' + data.completion_token);
         },
         onPending: function (result: any) {
           clearCart();
-          router.push('/checkout/success?order_id=' + data.order_id);
+          router.push('/checkout/success?order_id=' + data.order_id + '&token=' + data.completion_token);
         },
         onError: function (result: any) {
           toast.error("Pembayaran gagal!");
@@ -201,7 +207,7 @@ export default function CheckoutPage() {
       const res = await fetch('/api/checkout/cancel', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ order_id: pendingOrderId })
+        body: JSON.stringify({ order_id: pendingOrderId, completion_token: pendingOrderToken })
       });
       if (res.ok) {
         toast.success("Pesanan sebelumnya berhasil dibatalkan. Stok telah dikembalikan.");
@@ -221,29 +227,22 @@ export default function CheckoutPage() {
   if (items.length === 0) {
     return (
       <>
-        <Header />
-        <main className="flex-1 w-full flex flex-col bg-brand-lightbg items-center justify-center py-20 min-h-[60vh]">
-          <ShoppingBag size={64} className="text-gray-300 mb-4" />
-          <h1 className="text-2xl font-bold text-brand-text mb-2">Keranjang Belanja Kosong</h1>
-          <p className="text-gray-500 mb-8">Anda belum menambahkan produk apapun ke keranjang.</p>
-          <Link href="/products" className="bg-brand-green text-white px-6 py-3 rounded-lg font-medium hover:bg-brand-darkgreen transition-colors">
-            Mulai Belanja
-          </Link>
-        </main>
-        <Footer />
-      </>
+                <EmptyState
+          icon={ShoppingBag}
+          title="Keranjang Belanja Kosong"
+          description="Anda belum menambahkan produk apapun ke keranjang."
+          actionText="Mulai Belanja"
+          actionHref="/products"
+        />
+              </>
     );
   }
 
   return (
     <>
-      <Header />
-      <main className="flex-1 w-full bg-brand-lightbg py-12 px-4 md:px-8">
+            <main className="flex-1 w-full bg-brand-lightbg py-12 px-4 md:px-8">
         <div className="max-w-6xl mx-auto">
-          <Link href="/products" className="inline-flex items-center gap-2 text-brand-green hover:underline mb-8 font-medium">
-            <ArrowLeft size={16} />
-            Kembali Belanja
-          </Link>
+          <BackLink href="/products" text="Kembali Belanja" className="mb-8" />
 
           {pendingOrderId && (
             <div className="bg-yellow-50 text-yellow-800 p-5 rounded-2xl border border-yellow-200 mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-sm">
@@ -483,8 +482,7 @@ export default function CheckoutPage() {
           </div>
         </div>
       </main>
-      <Footer />
-      <Script 
+            <Script 
         src={process.env.NEXT_PUBLIC_MIDTRANS_IS_PRODUCTION === 'true' ? "https://app.midtrans.com/snap/snap.js" : "https://app.sandbox.midtrans.com/snap/snap.js"}
         data-client-key={process.env.NEXT_PUBLIC_MIDTRANS_CLIENT_KEY || 'SB-Mid-client-YOUR_CLIENT_KEY_HERE'}
       />

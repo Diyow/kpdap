@@ -1,12 +1,12 @@
 import React from "react";
 import Link from "next/link";
-import Header from "../../components/Header";
-import Footer from "../../components/Footer";
 import { createClient } from "@/utils/supabase/server";
 import { cookies } from "next/headers";
-import ProductGallery from "../../components/ProductGallery";
-import ProductOptions from "../../components/ProductOptions";
-import { ArrowLeft } from "lucide-react";
+import ProductGallery from "@/app/components/ProductGallery";
+import ProductOptions from "@/app/components/ProductOptions";
+import BackLink from "@/app/components/BackLink";
+import EmptyState from "@/app/components/EmptyState";
+import { PackageX } from "lucide-react";
 
 export const runtime = 'edge';
 
@@ -31,34 +31,23 @@ export default async function ProductDetailPage({
   if (!product || error) {
     return (
       <>
-        <Header />
-        <main className="flex-1 w-full flex flex-col items-center justify-center min-h-[60vh] bg-brand-lightbg">
-          <h1 className="text-2xl font-bold text-brand-text mb-4">
-            Produk Tidak Ditemukan
-          </h1>
-          <p className="text-gray-500 mb-6">Produk yang Anda cari mungkin telah dihapus atau tidak tersedia.</p>
-          <Link href="/products" className="text-brand-green hover:underline font-medium">
-            Kembali ke Katalog
-          </Link>
-        </main>
-        <Footer />
-      </>
+                <EmptyState
+          icon={PackageX}
+          title="Produk Tidak Ditemukan"
+          description="Produk yang Anda cari mungkin telah dihapus atau tidak tersedia."
+          actionText="Kembali ke Katalog"
+          actionHref="/products"
+        />
+              </>
     );
   }
 
   return (
     <>
-      <Header />
-      <main className="flex-1 w-full bg-brand-lightbg py-16 px-4 md:px-8">
+            <main className="flex-1 w-full bg-brand-lightbg py-16 px-4 md:px-8">
         <div className="max-w-6xl mx-auto">
           {/* Back Button */}
-          <Link 
-            href="/products" 
-            className="inline-flex items-center gap-2 text-gray-500 hover:text-brand-green font-medium mb-6 transition-colors group"
-          >
-            <ArrowLeft size={18} className="group-hover:-translate-x-1 transition-transform" />
-            Kembali ke Katalog
-          </Link>
+          <BackLink href="/products" text="Kembali ke Katalog" />
 
           {/* Main Product Section */}
           <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-6 md:p-10 mb-8">
@@ -193,7 +182,6 @@ export default async function ProductDetailPage({
           */}
         </div>
       </main>
-      <Footer />
-    </>
+          </>
   );
 }

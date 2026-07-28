@@ -5,10 +5,10 @@ export const runtime = 'edge';
 
 export async function POST(request: Request) {
   try {
-    const { order_id } = await request.json();
+    const { order_id, completion_token } = await request.json();
 
-    if (!order_id) {
-      return NextResponse.json({ error: 'Order ID is required' }, { status: 400 });
+    if (!order_id || !completion_token) {
+      return NextResponse.json({ error: 'Order ID and Completion Token are required' }, { status: 400 });
     }
 
     const supabase = createClient(
@@ -19,12 +19,17 @@ export async function POST(request: Request) {
     // 1. Fetch current order
     const { data: order, error: fetchError } = await supabase
       .from('orders')
-      .select('status')
+      .select('status, completion_token')
       .eq('id', order_id)
       .single();
 
     if (fetchError || !order) {
       return NextResponse.json({ error: 'Order not found' }, { status: 404 });
+    }
+
+    // Auth Validation (IDOR fix)
+    if (order.completion_token !== completion_token) {
+      return NextResponse.json({ error: 'Unauthorized. Invalid completion token.' }, { status: 403 });
     }
 
     if (order.status !== 'pending') {
@@ -75,14 +80,15 @@ export async function POST(request: Request) {
     // 4. Restore Stock
     const { data: items } = await supabase
       .from('order_items')
-      .select('product_id, quantity')
+      .select('product_id, quantity, variation_name')
       .eq('order_id', order_id);
       
     if (items) {
       for (const item of items) {
-        await supabase.rpc('restore_stock', {
+        await supabase.rpc('restore_stock_v2', {
           p_product_id: item.product_id,
-          p_quantity: item.quantity
+          p_quantity: item.quantity,
+          p_variation_name: item.variation_name || null
         });
       }
     }

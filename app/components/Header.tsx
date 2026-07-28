@@ -36,7 +36,7 @@ export default function Header() {
   const whatsappUrl = `https://wa.me/${contact.phone.replace("+", "")}`;
 
   return (
-    <header className="w-full relative z-50">
+    <header className="w-full sticky top-0 z-50 flex flex-col">
       {/* Top Bar */}
       <div className="bg-[#5a4634] text-white text-xs py-2 px-4 md:px-8 flex flex-col sm:flex-row justify-between items-center gap-2">
         <div className="flex flex-wrap justify-center gap-4">
@@ -59,7 +59,7 @@ export default function Header() {
       </div>
 
       {/* Main Navigation */}
-      <nav className="bg-white shadow-sm py-4 px-4 md:px-8 sticky top-0">
+      <nav className="bg-white/95 backdrop-blur-md shadow-sm py-4 px-4 md:px-8">
         <div className="flex justify-between items-center">
           <Link href="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
             <div className="w-10 h-10 shrink-0 relative">

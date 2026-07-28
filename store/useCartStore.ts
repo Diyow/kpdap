@@ -24,7 +24,8 @@ interface CartState {
   getCartTotal: () => number;
   setIsCartOpen: (isOpen: boolean) => void;
   pendingOrderId: string | null;
-  setPendingOrderId: (id: string | null) => void;
+  pendingOrderToken: string | null;
+  setPendingOrderId: (id: string | null, token?: string | null) => void;
 }
 
 export const useCartStore = create<CartState>()(
@@ -33,7 +34,8 @@ export const useCartStore = create<CartState>()(
       items: [],
       isCartOpen: false,
       pendingOrderId: null,
-      setPendingOrderId: (id) => set({ pendingOrderId: id }),
+      pendingOrderToken: null,
+      setPendingOrderId: (id, token = null) => set({ pendingOrderId: id, pendingOrderToken: token }),
       setIsCartOpen: (isOpen) => set({ isCartOpen: isOpen }),
       addItem: (product, variation, price, qty = 1) => {
         const currentItems = get().items;

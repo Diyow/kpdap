@@ -104,9 +104,5 @@ export const footerLinks = {
     { label: "Produk Kami", href: "/products" },
     { label: "Berita", href: "/blog" },
     { label: "Cek Pesanan", href: "/track-order" },
-    // TODO: Add these back when the content/pages are ready
-    // { label: "Kontak", href: "/#contact" },
-    // { label: "Transparansi (Legalitas, RAT, AD/ART)", href: "/#transparency" },
-    // { label: "Penjelasan Website (Syarat & Ketentuan, Privasi)", href: "/#website" },
   ],
 };

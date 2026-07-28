@@ -1,8 +1,6 @@
 "use client";
 
 import React, { useState } from "react";
-import Header from "../components/Header";
-import Footer from "../components/Footer";
 import { Search, Loader2, Package } from "lucide-react";
 import { useRouter } from "next/navigation";
 
@@ -44,8 +42,7 @@ export default function TrackOrderPage() {
 
   return (
     <div className="flex flex-col min-h-screen">
-      <Header />
-      <main className="flex-1 bg-brand-lightbg py-20 px-4 flex items-center justify-center">
+            <main className="flex-1 bg-brand-lightbg py-20 px-4 flex items-center justify-center">
         <div className="w-full max-w-lg bg-white rounded-3xl shadow-sm border border-gray-100 p-8 sm:p-12 text-center">
           <div className="w-20 h-20 bg-brand-green/10 rounded-full flex items-center justify-center mx-auto mb-6">
             <Package className="text-brand-green w-10 h-10" />
@@ -107,7 +104,6 @@ export default function TrackOrderPage() {
           </form>
         </div>
       </main>
-      <Footer />
-    </div>
+          </div>
   );
 }

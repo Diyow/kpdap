@@ -3,31 +3,8 @@ import { NextResponse } from 'next/server';
 export const runtime = 'edge';
 
 
-// Simple in-memory rate limiter (Best effort for serverless)
-const rateLimit = new Map<string, { count: number, timestamp: number }>();
-const RATE_LIMIT_MAX = 5; // max 5 requests
-const RATE_LIMIT_WINDOW = 60 * 1000; // per 1 minute
-
 export async function GET(request: Request) {
   try {
-    // --- Rate Limiting Logic ---
-    const ip = request.headers.get('x-forwarded-for') || 'unknown-ip';
-    const now = Date.now();
-    
-    if (rateLimit.has(ip)) {
-      const rateData = rateLimit.get(ip)!;
-      if (now - rateData.timestamp < RATE_LIMIT_WINDOW) {
-        if (rateData.count >= RATE_LIMIT_MAX) {
-          return NextResponse.json({ error: 'Terlalu banyak permintaan. Silakan coba lagi dalam beberapa menit.' }, { status: 429 });
-        }
-        rateData.count++;
-      } else {
-        rateLimit.set(ip, { count: 1, timestamp: now });
-      }
-    } else {
-      rateLimit.set(ip, { count: 1, timestamp: now });
-    }
-    // --- End Rate Limiting ---
 
     const apiKey = process.env.RAJAONGKIR_API_KEY;
     if (!apiKey) {

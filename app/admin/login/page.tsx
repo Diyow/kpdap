@@ -3,6 +3,7 @@ import { useState } from "react";
 import { createClient } from "@/utils/supabase/client";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
+import BackLink from "@/app/components/BackLink";
 
 export default function AdminLogin() {
   const [email, setEmail] = useState("");
@@ -32,7 +33,11 @@ export default function AdminLogin() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-brand-lightbg py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8 bg-white p-10 rounded-2xl shadow-sm border border-gray-100">
+      <div className="max-w-md w-full">
+        {/* Back Button Just Above The Card */}
+        <BackLink href="/" text="Kembali ke Beranda" className="mb-4" />
+
+        <div className="space-y-8 bg-white p-10 rounded-2xl shadow-sm border border-gray-100">
         <div className="flex flex-col items-center">
           <div className="w-20 h-20 shrink-0 relative mb-4">
             <Image
@@ -102,6 +107,7 @@ export default function AdminLogin() {
           </div>
         </form>
       </div>
+    </div>
     </div>
   );
 }

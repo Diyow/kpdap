@@ -1,13 +1,10 @@
 import React from "react";
-import Header from "../components/Header";
-import Footer from "../components/Footer";
 import { CheckCircle2, Target, Award, Users } from "lucide-react";
 
 export default function AboutPage() {
   return (
     <>
-      <Header />
-      <main className="flex-1 w-full flex flex-col">
+            <main className="flex-1 w-full flex flex-col">
         {/* Hero Section */}
         <section className="bg-brand-brown py-16 px-4 md:px-8 text-center relative overflow-hidden">
           <div className="absolute inset-0 opacity-20">
@@ -133,7 +130,6 @@ export default function AboutPage() {
           </div>
         </section>
       </main>
-      <Footer />
-    </>
+          </>
   );
 }

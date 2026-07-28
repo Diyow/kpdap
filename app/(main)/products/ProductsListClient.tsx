@@ -2,8 +2,8 @@
 
 import React from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import ProductCard from "../components/ProductCard";
-import type { Product } from "../components/ProductCard";
+import ProductCard from "@/app/components/ProductCard";
+import type { Product } from "@/app/components/ProductCard";
 
 type Category = {
   id: string;

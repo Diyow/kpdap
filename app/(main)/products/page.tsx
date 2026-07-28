@@ -1,7 +1,5 @@
 import React from "react";
 import Image from "next/image";
-import Header from "../components/Header";
-import Footer from "../components/Footer";
 import { createClient } from "@/utils/supabase/server";
 import { cookies } from "next/headers";
 import ProductsListClient from "./ProductsListClient";
@@ -27,8 +25,7 @@ export default async function ProductsPage() {
 
   return (
     <>
-      <Header />
-      <main className="flex-1 w-full flex flex-col bg-brand-lightbg">
+            <main className="flex-1 w-full flex flex-col bg-brand-lightbg">
         {/* Page Header */}
         <section className="bg-brand-brown py-16 px-4 md:px-8 text-center relative overflow-hidden">
           <div className="absolute inset-0 opacity-10">
@@ -53,7 +50,6 @@ export default async function ProductsPage() {
           initialCategories={categories || []} 
         />
       </main>
-      <Footer />
-    </>
+          </>
   );
 }

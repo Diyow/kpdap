@@ -1,6 +1,5 @@
 import React from "react";
-import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
+import BackLink from "@/app/components/BackLink";
 
 export const metadata = {
   title: "Kebijakan Privasi | KPDAP",
@@ -11,13 +10,7 @@ export default function PrivacyPolicyPage() {
   return (
     <div className="min-h-screen bg-[#fdfbf7] py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-4xl mx-auto">
-        <Link 
-          href="/" 
-          className="inline-flex items-center gap-2 text-brand-green hover:text-brand-darkgreen mb-8 transition-colors font-medium"
-        >
-          <ArrowLeft size={20} />
-          Kembali ke Beranda
-        </Link>
+        <BackLink href="/" text="Kembali ke Beranda" className="mb-8" />
         
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 md:p-12 prose prose-brand prose-lg max-w-none">
           <h1 className="text-3xl md:text-4xl font-bold text-brand-text mb-4">Kebijakan Privasi</h1>

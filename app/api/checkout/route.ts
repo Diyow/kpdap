@@ -4,35 +4,11 @@ import { createClient } from '@supabase/supabase-js';
 export const runtime = 'edge';
 
 
-// Simple in-memory rate limiter (Best effort for serverless)
-const rateLimit = new Map<string, { count: number, timestamp: number }>();
-const RATE_LIMIT_MAX = 5; // max 5 requests
-const RATE_LIMIT_WINDOW = 60 * 1000; // per 1 minute
-
 export async function POST(request: Request) {
   try {
-    // --- Rate Limiting Logic ---
-    // In App Router, we can try to get IP from headers (x-forwarded-for). Fallback to a default if not found.
-    const ip = request.headers.get('x-forwarded-for') || 'unknown-ip';
-    const now = Date.now();
-    
-    if (rateLimit.has(ip)) {
-      const rateData = rateLimit.get(ip)!;
-      if (now - rateData.timestamp < RATE_LIMIT_WINDOW) {
-        if (rateData.count >= RATE_LIMIT_MAX) {
-          return NextResponse.json({ error: 'Terlalu banyak permintaan. Silakan coba lagi dalam beberapa menit.' }, { status: 429 });
-        }
-        rateData.count++;
-      } else {
-        rateLimit.set(ip, { count: 1, timestamp: now });
-      }
-    } else {
-      rateLimit.set(ip, { count: 1, timestamp: now });
-    }
-    // --- End Rate Limiting ---
 
     const body = await request.json();
-    const { items, customer, total_amount, shipping_cost, courier } = body;
+    const { items, customer, shipping_details, total_amount, shipping_cost, courier } = body;
 
     const supabase = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -85,16 +61,55 @@ export async function POST(request: Request) {
 
     const calculatedSubtotal = verifiedItems.reduce((sum: number, item: any) => sum + (item.price * item.quantity), 0);
     
-    // TODO: RajaOngkir API seems unreliable at the moment.
-    // For now, we trust the client's shipping cost, but this should be moved to the server soon.
-    const trustedShippingCost = Number(shipping_cost) || 0;
+    // Server-Side Shipping Verification
+    let verifiedShippingCost = 0;
+    
+    if (shipping_details && shipping_details.destination && shipping_details.courier && shipping_details.weight) {
+      const origin = process.env.NEXT_PUBLIC_ORIGIN_CITY_ID || '447';
+      const apiKey = process.env.RAJAONGKIR_API_KEY;
+      
+      if (!apiKey) {
+        throw new Error('Konfigurasi RajaOngkir API Key tidak ditemukan di server.');
+      }
 
-    // SECURITY PATCH: Prevent negative shipping cost exploit
-    if (trustedShippingCost < 0) {
-      return NextResponse.json({ error: 'Ongkos kirim tidak valid.' }, { status: 400 });
+      const roResponse = await fetch('https://rajaongkir.komerce.id/api/v1/calculate/domestic-cost', {
+        method: 'POST',
+        headers: {
+          'content-type': 'application/x-www-form-urlencoded',
+          'key': apiKey
+        },
+        body: new URLSearchParams({
+          origin: origin,
+          destination: shipping_details.destination.toString(),
+          weight: shipping_details.weight.toString(),
+          courier: shipping_details.courier.toLowerCase(),
+          price: 'lowest'
+        }).toString()
+      });
+
+      if (!roResponse.ok) {
+        throw new Error('Gagal memverifikasi ongkos kirim ke server kurir.');
+      }
+      
+      const roData = await roResponse.json();
+      const komerceData = roData.data || [];
+      
+      // Find the selected courier
+      const selectedCourierData = komerceData.filter((c: any) => c.code === shipping_details.courier);
+      // Find the specific service
+      const selectedService = selectedCourierData.find((s: any) => s.service === shipping_details.service);
+      
+      if (!selectedService) {
+         throw new Error(`Layanan kurir ${shipping_details.courier.toUpperCase()} - ${shipping_details.service} tidak tersedia untuk tujuan ini.`);
+      }
+      
+      verifiedShippingCost = selectedService.cost;
+    } else if (shipping_cost > 0) {
+      // If client sent shipping cost but no details to verify, reject it
+      throw new Error('Data pengiriman tidak lengkap untuk verifikasi.');
     }
 
-    const trueTotalAmount = calculatedSubtotal + trustedShippingCost;
+    const trueTotalAmount = calculatedSubtotal + verifiedShippingCost;
 
     // 0. Deduct stock for each item (Atomic using RPC)
     const successfullyDeducted: { id: number, qty: number, variation: string | null }[] = [];
@@ -137,7 +152,7 @@ export async function POST(request: Request) {
         shipping_address: customer.address + (customer.city ? `, ${customer.city}, ${customer.province}` : ''),
         notes: customer.notes,
         total_amount: trueTotalAmount, // Secure server calculated amount
-        shipping_cost: trustedShippingCost,
+        shipping_cost: verifiedShippingCost,
         courier: courier || null,
         status: 'pending',
         completion_token: completionToken
@@ -189,9 +204,9 @@ export async function POST(request: Request) {
           quantity: item.quantity,
           name: (item.title + (item.variation ? ` - ${item.variation}` : '')).substring(0, 50)
         })),
-        ...(trustedShippingCost > 0 ? [{
+        ...(verifiedShippingCost > 0 ? [{
           id: 'SHIPPING',
-          price: trustedShippingCost,
+          price: verifiedShippingCost,
           quantity: 1,
           name: `Ongkos Kirim ${courier ? '(' + courier + ')' : ''}`.substring(0, 50)
         }] : [])
@@ -221,7 +236,8 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ 
       token: transaction.token,
-      order_id: orderId 
+      order_id: orderId,
+      completion_token: completionToken
     });
 
   } catch (error: any) {
