@@ -1,55 +1,29 @@
-"use client";
-
-import React, { useEffect, useState } from "react";
+import React from "react";
 import Image from "next/image";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
-import { createClient } from "@/utils/supabase/client";
-import { useCartStore } from "@/store/useCartStore";
-import { Loader2 } from "lucide-react";
-import ProductCard from "../components/ProductCard";
-import type { Product } from "../components/ProductCard";
+import { createClient } from "@/utils/supabase/server";
+import { cookies } from "next/headers";
+import ProductsListClient from "./ProductsListClient";
+import type { Metadata } from 'next';
 
-type Category = {
-  id: string;
-  name: string;
-  slug: string;
+export const metadata: Metadata = {
+  title: 'Katalog Produk Kami | KPDAP',
+  description: 'Jelajahi berbagai pilihan kopi premium, paket wisata, dan produk pertanian organik kami yang ditanam dengan penuh cinta oleh para petani Bali.'
 };
 
-export default function ProductsPage() {
-  const [products, setProducts] = useState<Product[]>([]);
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [activeCategory, setActiveCategory] = useState<string>("all");
-  const [loading, setLoading] = useState(true);
+export default async function ProductsPage() {
+  const cookieStore = await cookies();
+  const supabase = createClient(cookieStore);
 
-  const { addItem, setIsCartOpen } = useCartStore();
-  const supabase = createClient();
-
-  const fetchCategories = async () => {
-    const { data } = await supabase.from("categories").select("*").order("name");
-    if (data) setCategories(data);
-  };
-
-  const fetchProducts = async () => {
-    setLoading(true);
-    const { data } = await supabase
-      .from("products")
-      .select("id, title, price, image, description, badge, category_id, variations")
-      .eq("is_active", true)
-      .order("id", { ascending: false });
-
-    if (data) setProducts(data);
-    setLoading(false);
-  };
-
-  useEffect(() => {
-    fetchCategories();
-    fetchProducts();
-  }, []);
-
-  const filteredProducts = activeCategory === "all"
-    ? products
-    : products.filter(p => p.category_id === activeCategory);
+  // Fetch categories and products server-side
+  const { data: categories } = await supabase.from("categories").select("*").order("name");
+  
+  const { data: products } = await supabase
+    .from("products")
+    .select("id, title, price, compare_at_price, image, description, badge, category_id, variations, slug")
+    .eq("is_active", true)
+    .order("id", { ascending: false });
 
   return (
     <>
@@ -73,49 +47,11 @@ export default function ProductsPage() {
           </div>
         </section>
 
-        {/* Products Grid */}
-        <section className="py-16 px-4 md:px-8 flex-1">
-          <div className="max-w-7xl mx-auto">
-            {/* Filter Section */}
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-8 gap-4">
-              <div className="flex gap-2 overflow-x-auto pb-2 sm:pb-0 w-full sm:w-auto scrollbar-hide">
-                <button
-                  onClick={() => setActiveCategory("all")}
-                  className={`whitespace-nowrap px-4 py-2 rounded-full text-sm font-medium transition-colors ${activeCategory === "all" ? "bg-brand-green text-white" : "bg-white text-gray-600 hover:bg-gray-100 border border-gray-200"
-                    }`}
-                >
-                  Semua
-                </button>
-                {categories.map((category) => (
-                  <button
-                    key={category.id}
-                    onClick={() => setActiveCategory(category.id)}
-                    className={`whitespace-nowrap px-4 py-2 rounded-full text-sm font-medium transition-colors ${activeCategory === category.id ? "bg-brand-green text-white" : "bg-white text-gray-600 hover:bg-gray-100 border border-gray-200"
-                      }`}
-                  >
-                    {category.name}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {loading ? (
-              <div className="flex justify-center items-center h-64">
-                <Loader2 className="animate-spin text-brand-green" size={48} />
-              </div>
-            ) : filteredProducts.length === 0 ? (
-              <div className="text-center py-20 bg-white rounded-xl border border-gray-100">
-                <p className="text-gray-500">Belum ada produk di kategori ini.</p>
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                {filteredProducts.map((product) => (
-                  <ProductCard key={product.id} product={product} />
-                ))}
-              </div>
-            )}
-          </div>
-        </section>
+        {/* Products Grid - Using Client Component for interactions */}
+        <ProductsListClient 
+          initialProducts={products || []} 
+          initialCategories={categories || []} 
+        />
       </main>
       <Footer />
     </>

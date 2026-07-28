@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
-import { createClient } from '@/utils/supabase/server';
-import { cookies } from 'next/headers';
+import { createClient } from '@supabase/supabase-js';
 
 export const runtime = 'edge';
 
@@ -34,8 +33,10 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Invalid signature' }, { status: 400 });
     }
 
-    const cookieStore = await cookies();
-    const supabase = createClient(cookieStore);
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    );
 
     // Determine new status
     let newStatus = 'pending';
@@ -81,14 +82,15 @@ export async function POST(request: Request) {
     if (newStatus === 'failed' && !['failed', 'expired', 'cancelled'].includes(currentOrder.status)) {
       const { data: items } = await supabase
         .from('order_items')
-        .select('product_id, quantity')
+        .select('product_id, quantity, variation_name')
         .eq('order_id', order_id);
         
       if (items) {
         for (const item of items) {
-          await supabase.rpc('restore_stock', {
+          await supabase.rpc('restore_stock_v2', {
             p_product_id: item.product_id,
-            p_quantity: item.quantity
+            p_quantity: item.quantity,
+            p_variation_name: item.variation_name || null
           });
         }
       }

@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
-import { createClient } from '@/utils/supabase/server';
-import { cookies } from 'next/headers';
+import { createClient } from '@supabase/supabase-js';
 
 export const runtime = 'edge';
 
@@ -35,8 +34,10 @@ export async function POST(request: Request) {
     const body = await request.json();
     const { items, customer, total_amount, shipping_cost, courier } = body;
 
-    const cookieStore = await cookies();
-    const supabase = createClient(cookieStore);
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    );
 
     // Fetch authoritative product prices from DB
     const itemIds = items.map((item: any) => item.id);
@@ -59,12 +60,19 @@ export async function POST(request: Request) {
       let actualPrice = dbProduct.price;
       
       // If a variation was selected, verify its price
-      if (item.variation && dbProduct.variations) {
+      if (item.variation) {
+        if (!dbProduct.variations || dbProduct.variations.length === 0) {
+          throw new Error(`Produk ${item.title} tidak memiliki variasi, tetapi variasi dipilih.`);
+        }
+        
         const variationMatch = dbProduct.variations.find(
           (v: any) => v.name === item.variation
         );
+        
         if (variationMatch) {
           actualPrice = variationMatch.price;
+        } else {
+          throw new Error(`Variasi '${item.variation}' tidak valid untuk produk ${item.title}.`);
         }
       }
 
@@ -80,16 +88,23 @@ export async function POST(request: Request) {
     // TODO: RajaOngkir API seems unreliable at the moment.
     // For now, we trust the client's shipping cost, but this should be moved to the server soon.
     const trustedShippingCost = Number(shipping_cost) || 0;
+
+    // SECURITY PATCH: Prevent negative shipping cost exploit
+    if (trustedShippingCost < 0) {
+      return NextResponse.json({ error: 'Ongkos kirim tidak valid.' }, { status: 400 });
+    }
+
     const trueTotalAmount = calculatedSubtotal + trustedShippingCost;
 
     // 0. Deduct stock for each item (Atomic using RPC)
-    const successfullyDeducted: { id: number, qty: number }[] = [];
+    const successfullyDeducted: { id: number, qty: number, variation: string | null }[] = [];
     
     try {
       for (const item of items) {
-        const { data: success, error: rpcError } = await supabase.rpc('deduct_stock', {
+        const { data: success, error: rpcError } = await supabase.rpc('deduct_stock_v2', {
           p_product_id: item.id,
-          p_quantity: item.quantity
+          p_quantity: item.quantity,
+          p_variation_name: item.variation || null
         });
         
         if (rpcError) throw new Error(rpcError.message);
@@ -97,14 +112,15 @@ export async function POST(request: Request) {
           throw new Error(`Stok tidak mencukupi untuk produk: ${item.title}`);
         }
         
-        successfullyDeducted.push({ id: item.id, qty: item.quantity });
+        successfullyDeducted.push({ id: item.id, qty: item.quantity, variation: item.variation || null });
       }
     } catch (err: any) {
       // Rollback successfully deducted stocks
       for (const item of successfullyDeducted) {
-        await supabase.rpc('restore_stock', {
+        await supabase.rpc('restore_stock_v2', {
           p_product_id: item.id,
-          p_quantity: item.qty
+          p_quantity: item.qty,
+          p_variation_name: item.variation
         });
       }
       return NextResponse.json({ error: err.message }, { status: 400 });
@@ -138,7 +154,8 @@ export async function POST(request: Request) {
       order_id: orderId,
       product_id: item.id,
       quantity: item.quantity,
-      price_at_time: item.price
+      price_at_time: item.price,
+      variation_name: item.variation || null
     }));
 
     const { error: itemsError } = await supabase

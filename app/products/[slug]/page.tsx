@@ -2,8 +2,8 @@ import React from "react";
 import Link from "next/link";
 import Header from "../../components/Header";
 import Footer from "../../components/Footer";
-import { createClient } from "@supabase/supabase-js";
-import { products as staticProducts } from "../../data";
+import { createClient } from "@/utils/supabase/server";
+import { cookies } from "next/headers";
 import ProductGallery from "../../components/ProductGallery";
 import ProductOptions from "../../components/ProductOptions";
 import { ArrowLeft } from "lucide-react";
@@ -13,30 +13,22 @@ export const runtime = 'edge';
 export default async function ProductDetailPage({
   params,
 }: {
-  params: Promise<{ id: string }>;
+  params: Promise<{ slug: string }>;
 }) {
-  const { id } = await params;
+  const { slug } = await params;
+  const decodedSlug = decodeURIComponent(slug);
   
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!
-  );
+  const cookieStore = await cookies();
+  const supabase = createClient(cookieStore);
 
   // Try fetching from supabase
-  const { data: productData, error } = await supabase
+  const { data: product, error } = await supabase
     .from("products")
     .select("*")
-    .eq("id", id)
+    .eq("slug", decodedSlug)
     .single();
 
-  let product = productData;
-
-  // Fallback to static data if not found in DB
   if (!product || error) {
-    product = staticProducts.find((p) => p.id.toString() === id);
-  }
-
-  if (!product) {
     return (
       <>
         <Header />
@@ -44,7 +36,8 @@ export default async function ProductDetailPage({
           <h1 className="text-2xl font-bold text-brand-text mb-4">
             Produk Tidak Ditemukan
           </h1>
-          <Link href="/products" className="text-brand-green hover:underline">
+          <p className="text-gray-500 mb-6">Produk yang Anda cari mungkin telah dihapus atau tidak tersedia.</p>
+          <Link href="/products" className="text-brand-green hover:underline font-medium">
             Kembali ke Katalog
           </Link>
         </main>
@@ -120,6 +113,7 @@ export default async function ProductDetailPage({
                   }}
                   variations={product.variations || []}
                   price={product.price}
+                  compare_at_price={product.compare_at_price}
                   stock={product.stock || 0}
                 />
               </div>

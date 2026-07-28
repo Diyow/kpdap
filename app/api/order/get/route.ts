@@ -35,10 +35,83 @@ export async function POST(request: Request) {
     if (error || !data) {
       return NextResponse.json({ error: 'Order not found' }, { status: 404 });
     }
-
     // Since this endpoint bypasses RLS, we only return the order data to the exact UUID requester.
-    return NextResponse.json({ order: data });
 
+    // --- MIDTRANS LOCAL SYNC WORKAROUND ---
+    // If the order is pending, check Midtrans directly. 
+    // This solves the issue where local webhooks cannot be reached by Midtrans.
+    if (data.status === 'pending') {
+      const serverKey = process.env.MIDTRANS_SERVER_KEY;
+      const isProduction = process.env.NEXT_PUBLIC_MIDTRANS_IS_PRODUCTION === 'true';
+      const midtransApiUrl = isProduction 
+        ? `https://api.midtrans.com/v2/${order_id}/status`
+        : `https://api.sandbox.midtrans.com/v2/${order_id}/status`;
+
+      if (serverKey) {
+        try {
+          const midtransRes = await fetch(midtransApiUrl, {
+            headers: {
+              'Accept': 'application/json',
+              'Content-Type': 'application/json',
+              'Authorization': `Basic ${btoa(serverKey + ':')}`
+            }
+          });
+          
+          if (midtransRes.ok) {
+            const midtransData = await midtransRes.json();
+            const transaction_status = midtransData.transaction_status;
+            const fraud_status = midtransData.fraud_status;
+
+            let newStatus = 'pending';
+            
+            if (transaction_status === 'capture') {
+              if (fraud_status === 'challenge') {
+                newStatus = 'pending';
+              } else if (fraud_status === 'accept') {
+                newStatus = 'paid';
+              }
+            } else if (transaction_status === 'settlement') {
+              newStatus = 'paid';
+            } else if (
+              transaction_status === 'cancel' ||
+              transaction_status === 'deny' ||
+              transaction_status === 'expire'
+            ) {
+              newStatus = 'failed';
+            }
+
+            if (newStatus !== 'pending') {
+              // Update database
+              await supabaseAdmin.from('orders').update({ status: newStatus }).eq('id', order_id);
+              data.status = newStatus;
+
+              // Restore stock if it failed
+              if (newStatus === 'failed') {
+                const { data: items } = await supabaseAdmin
+                  .from('order_items')
+                  .select('product_id, quantity, variation_name')
+                  .eq('order_id', order_id);
+                  
+                if (items) {
+                  for (const item of items) {
+                    await supabaseAdmin.rpc('restore_stock_v2', {
+                      p_product_id: item.product_id,
+                      p_quantity: item.quantity,
+                      p_variation_name: item.variation_name || null
+                    });
+                  }
+                }
+              }
+            }
+          }
+        } catch (syncError) {
+          console.error("Midtrans sync error:", syncError);
+        }
+      }
+    }
+    // --- END SYNC WORKAROUND ---
+
+    return NextResponse.json({ order: data });
   } catch (error: any) {
     console.error('Fetch order error:', error);
     return NextResponse.json(

@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { createClient } from "@/utils/supabase/client";
-import { Search, ChevronLeft, ChevronRight, UserCircle, Phone, Mail } from "lucide-react";
+import { Search, ChevronLeft, ChevronRight, UserCircle, Phone, Mail, Download } from "lucide-react";
 import { Skeleton } from "@/app/components/ui/Skeleton";
 import toast from "react-hot-toast";
 
@@ -73,6 +73,46 @@ export default function CustomersManager() {
 
   const totalPages = Math.ceil(totalCount / ITEMS_PER_PAGE);
 
+  const exportToCSV = async () => {
+    try {
+      const toastId = toast.loading("Menyiapkan data CSV...");
+      const { data, error } = await supabase
+        .from("customers_summary")
+        .select("*")
+        .order("last_order_date", { ascending: false });
+
+      if (error) {
+        toast.error("Gagal mengekspor data: " + error.message, { id: toastId });
+        return;
+      }
+
+      const headers = ["Nama", "Nomor Telepon", "Email", "Total Pesanan", "Total Belanja (Rp)", "Pesanan Terakhir"];
+      const csvContent = [
+        headers.join(","),
+        ...(data || []).map(c => [
+          `"${(c.name || '').replace(/"/g, '""')}"`,
+          `'${c.phone}'`,
+          `"${(c.email || '').replace(/"/g, '""')}"`,
+          c.total_orders,
+          c.total_spent,
+          `"${new Date(c.last_order_date).toLocaleString('id-ID')}"`
+        ].join(","))
+      ].join("\n");
+
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.setAttribute("href", url);
+      link.setAttribute("download", `customers_export_${new Date().toISOString().split('T')[0]}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      toast.success("Berhasil mengekspor data", { id: toastId });
+    } catch (err: any) {
+      toast.error("Gagal mengekspor data", { id: err?.message || 'err' });
+    }
+  };
+
   if (loading) {
     return (
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
@@ -141,6 +181,13 @@ export default function CustomersManager() {
             />
             <Search className="absolute left-3 top-2.5 text-gray-400" size={16} />
           </form>
+          <button
+            onClick={exportToCSV}
+            className="flex items-center justify-center gap-2 px-4 py-2 bg-white border border-gray-200 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium text-sm shrink-0"
+          >
+            <Download size={18} />
+            Export CSV
+          </button>
         </div>
       </div>
 

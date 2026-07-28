@@ -3,7 +3,7 @@ import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { contactInfo as defaultContact, navLinks } from "../data";
-import { Phone, Mail, User, MessageCircle, Menu, X, ShoppingBag } from "lucide-react";
+import { Phone, Mail, User, MessageCircle, Menu, X, ShoppingBag, CreditCard } from "lucide-react";
 import { createClient } from "@/utils/supabase/client";
 import { useCartStore } from "@/store/useCartStore";
 import CartDrawer from "./CartDrawer";
@@ -15,7 +15,7 @@ export default function Header() {
   const [contact, setContact] = useState({ phone: defaultContact.phone, email: defaultContact.email });
   const [mounted, setMounted] = useState(false);
   
-  const { items, setIsCartOpen } = useCartStore();
+  const { items, setIsCartOpen, pendingOrderId } = useCartStore();
 
   useEffect(() => {
     setMounted(true);
@@ -107,7 +107,19 @@ export default function Header() {
             ))}
           </ul>
 
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2 sm:gap-4">
+            {mounted && pendingOrderId && (
+              <Link 
+                href={`/checkout/success?order_id=${pendingOrderId}`}
+                className="relative p-2 text-gray-600 hover:text-brand-green transition-colors"
+                title="Pesanan Tertunda"
+              >
+                <CreditCard size={22} />
+                <span className="absolute top-0 right-0 bg-red-500 text-white text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center translate-x-1 -translate-y-1">
+                  !
+                </span>
+              </Link>
+            )}
             <button 
               onClick={() => setIsCartOpen(true)}
               className="relative p-2 text-gray-600 hover:text-brand-green transition-colors"

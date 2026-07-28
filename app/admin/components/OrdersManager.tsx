@@ -5,6 +5,7 @@ import { createClient } from "@/utils/supabase/client";
 import toast from "react-hot-toast";
 import { Loader2, Search, Filter, Send, MessageCircle, FileText, CheckCircle, Clock, XCircle, ChevronDown, ChevronUp, Copy, Check, ChevronLeft, ChevronRight, Package, Truck, Ban, Save } from "lucide-react";
 import { Skeleton } from "@/app/components/ui/Skeleton";
+import ConfirmModal from "@/app/components/ConfirmModal";
 
 type Order = {
   id: string;
@@ -18,6 +19,7 @@ type Order = {
   payment_method: string;
   invoice_sent: boolean;
   tracking_number?: string | null;
+  courier?: string | null;
   created_at: string;
 };
 
@@ -55,6 +57,17 @@ export default function OrdersManager() {
   const [tempTracking, setTempTracking] = useState<string>("");
   const [isUpdatingStatus, setIsUpdatingStatus] = useState<Record<string, boolean>>({});
 
+  // Modal State
+  const [modalConfig, setModalConfig] = useState({
+    isOpen: false,
+    title: "",
+    description: "",
+    confirmText: "",
+    isDestructive: false,
+    orderIdToUpdate: "",
+    newStatus: "",
+  });
+
   const supabase = createClient();
 
   // Debounce search
@@ -74,6 +87,28 @@ export default function OrdersManager() {
   const updateOrderStatus = async (orderId: string, newStatus: string, newTracking?: string) => {
     setIsUpdatingStatus(prev => ({ ...prev, [orderId]: true }));
     
+    // If the admin is cancelling the order, we need to restore the stock
+    if (newStatus === 'cancelled') {
+      try {
+        const { data: items } = await supabase
+          .from('order_items')
+          .select('product_id, quantity, variation_name')
+          .eq('order_id', orderId);
+          
+        if (items) {
+          for (const item of items) {
+            await supabase.rpc('restore_stock_v2', {
+              p_product_id: item.product_id,
+              p_quantity: item.quantity,
+              p_variation_name: item.variation_name || null
+            });
+          }
+        }
+      } catch (err) {
+        console.error("Error restoring stock:", err);
+      }
+    }
+
     const updateData: any = { status: newStatus };
     if (newTracking !== undefined) {
       updateData.tracking_number = newTracking;
@@ -101,6 +136,19 @@ export default function OrdersManager() {
       );
     }
     setIsUpdatingStatus(prev => ({ ...prev, [orderId]: false }));
+    setModalConfig(prev => ({ ...prev, isOpen: false }));
+  };
+
+  const openModal = (orderId: string, newStatus: string, title: string, description: string, confirmText: string, isDestructive: boolean = false) => {
+    setModalConfig({
+      isOpen: true,
+      title,
+      description,
+      confirmText,
+      isDestructive,
+      orderIdToUpdate: orderId,
+      newStatus,
+    });
   };
 
   const fetchOrders = async () => {
@@ -202,15 +250,47 @@ export default function OrdersManager() {
     }
 
     const trackUrl = `${window.location.origin}/checkout/success?order_id=${order.id}`;
+    const orderIdShort = order.id.split('-')[0];
 
-    return `*INVOICE PESANAN - KPDAP*\n\n` +
-      `Halo *${order.customer_name}*, terima kasih telah berbelanja di KPDAP!\n\n` +
-      `*Detail Pesanan (ID: ${order.id.split('-')[0]}):*\n${itemsText}\n\n` +
-      `*Status Pembayaran:* ${order.status.toUpperCase()}\n` +
-      `*Metode Pembayaran:* ${order.payment_method || '-'}\n` +
-      `*Total: ${formatRupiah(order.total_amount)}*\n\n` +
-      `*Alamat Pengiriman:*\n${order.shipping_address}\n\n` +
-      `Pesanan Anda sedang kami proses. Pantau status pesanan Anda secara live melalui link berikut:\n${trackUrl}\n\nTerima kasih!`;
+    const baseHeader = `Halo *${order.customer_name}*, ini KPDAP.\n\n*Detail Pesanan (ID: ${orderIdShort}):*\n${itemsText}\n\n*Total: ${formatRupiah(order.total_amount)}*\n\n`;
+
+    switch (order.status) {
+      case 'pending':
+        return `*PENGINGAT PEMBAYARAN - KPDAP*\n\n` + baseHeader +
+          `Kami mengingatkan bahwa pesanan Anda belum dibayar. Mohon segera selesaikan pembayaran sebelum batas waktu berakhir agar pesanan tidak dibatalkan otomatis oleh sistem.\n\n` +
+          `Klik link berikut untuk melanjutkan pembayaran:\n${trackUrl}\n\nTerima kasih!`;
+      
+      case 'shipped':
+        return `*INFO PENGIRIMAN - KPDAP*\n\n` + baseHeader +
+          `Pesanan Anda sedang dalam perjalanan!\n\n` +
+          `*Kurir:* ${order.courier || '-'}\n` +
+          `*Nomor Resi:* ${order.tracking_number || '-'}\n\n` +
+          `Pantau status pesanan Anda secara live melalui link berikut:\n${trackUrl}\n\nTerima kasih telah berbelanja!`;
+
+      case 'completed':
+        return `*PESANAN SELESAI - KPDAP*\n\n` + baseHeader +
+          `Pesanan Anda telah selesai dan diterima. Terima kasih banyak telah berbelanja di KPDAP!\n\n` +
+          `Kami berharap Anda puas dengan produk kami. Jangan ragu untuk berbelanja kembali. Semoga harimu menyenangkan!`;
+
+      case 'cancelled':
+      case 'failed':
+      case 'expired':
+        return `*PESANAN DIBATALKAN - KPDAP*\n\n` + baseHeader +
+          `Mohon maaf, pesanan Anda telah dibatalkan karena belum ada pembayaran yang diterima atau dibatalkan oleh sistem.\n\n` +
+          `Jika Anda masih ingin membeli produk ini, silakan buat pesanan baru di website kami.\n\nTerima kasih!`;
+
+      case 'paid':
+      case 'processing':
+      default:
+        return `*INVOICE PESANAN - KPDAP*\n\n` +
+          `Halo *${order.customer_name}*, terima kasih telah berbelanja di KPDAP!\n\n` +
+          `*Detail Pesanan (ID: ${orderIdShort}):*\n${itemsText}\n\n` +
+          `*Status Pembayaran:* ${order.status.toUpperCase()}\n` +
+          `*Metode Pembayaran:* ${order.payment_method || '-'}\n` +
+          `*Total: ${formatRupiah(order.total_amount)}*\n\n` +
+          `*Alamat Pengiriman:*\n${order.shipping_address}\n\n` +
+          `Pesanan Anda sedang kami proses. Pantau status pesanan Anda secara live melalui link berikut:\n${trackUrl}\n\nTerima kasih!`;
+    }
   };
 
   const sendWhatsAppInvoice = (order: Order) => {
@@ -424,15 +504,15 @@ export default function OrdersManager() {
                         <button 
                           onClick={() => updateOrderStatus(order.id, 'processing')}
                           disabled={isUpdatingStatus[order.id]}
-                          className="bg-brand-green text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-brand-darkgreen flex items-center gap-2"
+                          className="bg-brand-green text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-brand-darkgreen flex items-center gap-2 transition-all shadow-sm"
                         >
                           {isUpdatingStatus[order.id] ? <Loader2 size={16} className="animate-spin" /> : <Package size={16} />}
                           Proses Pesanan
                         </button>
                         <button 
-                          onClick={() => { if(confirm('Yakin ingin membatalkan pesanan ini?')) updateOrderStatus(order.id, 'cancelled'); }}
+                          onClick={() => openModal(order.id, 'cancelled', 'Batalkan Pesanan', 'Yakin ingin membatalkan pesanan ini? Stok akan dikembalikan.', 'Ya, Batalkan', true)}
                           disabled={isUpdatingStatus[order.id]}
-                          className="bg-red-50 text-red-600 border border-red-200 px-4 py-2 rounded-lg text-sm font-bold hover:bg-red-100 flex items-center gap-2"
+                          className="bg-white text-red-600 border border-gray-300 px-4 py-2 rounded-lg text-sm font-semibold hover:bg-red-50 hover:border-red-300 transition-all shadow-sm flex items-center gap-2"
                         >
                           Batalkan
                         </button>
@@ -457,15 +537,15 @@ export default function OrdersManager() {
                               updateOrderStatus(order.id, 'shipped', tempTracking);
                             }}
                             disabled={isUpdatingStatus[order.id] || !tempTracking.trim()}
-                            className="bg-brand-green text-white px-5 py-2 rounded-lg text-sm font-bold hover:bg-brand-darkgreen flex items-center justify-center gap-2 disabled:opacity-50"
+                            className="bg-brand-green text-white px-5 py-2 rounded-lg text-sm font-bold hover:bg-brand-darkgreen flex items-center justify-center gap-2 disabled:opacity-50 transition-all shadow-sm"
                           >
                             {isUpdatingStatus[order.id] ? <Loader2 size={16} className="animate-spin" /> : <Truck size={16} />}
                             Kirim Pesanan
                           </button>
                           <button 
-                            onClick={() => { if(confirm('Yakin ingin membatalkan pesanan ini?')) updateOrderStatus(order.id, 'cancelled'); }}
+                            onClick={() => openModal(order.id, 'cancelled', 'Batalkan Pesanan', 'Yakin ingin membatalkan pesanan ini?', 'Ya, Batalkan', true)}
                             disabled={isUpdatingStatus[order.id]}
-                            className="bg-white text-red-600 border border-red-200 px-4 py-2 rounded-lg text-sm font-bold hover:bg-red-50 flex items-center justify-center gap-2"
+                            className="bg-white text-red-600 border border-gray-300 px-4 py-2 rounded-lg text-sm font-semibold hover:bg-red-50 hover:border-red-300 transition-all shadow-sm flex items-center justify-center gap-2"
                           >
                             Batalkan
                           </button>
@@ -523,9 +603,46 @@ export default function OrdersManager() {
                       </div>
                     )}
                     
-                    {['pending', 'failed', 'expired', 'cancelled'].includes(order.status) && (
-                      <div className="text-sm text-gray-500 italic">
-                        Tidak ada tindakan admin yang diperlukan saat ini.
+                    {order.status === 'pending' && (
+                      <div className="flex flex-wrap gap-3">
+                        <button 
+                          onClick={() => openModal(order.id, 'cancelled', 'Batalkan Paksa', 'Yakin ingin membatalkan pesanan ini secara paksa? Stok akan otomatis dikembalikan ke inventaris.', 'Batalkan Pesanan', true)}
+                          disabled={isUpdatingStatus[order.id]}
+                          className="bg-white text-red-600 border border-gray-300 px-5 py-2.5 rounded-lg text-sm font-semibold hover:bg-red-50 hover:border-red-300 hover:text-red-700 transition-all shadow-sm flex items-center justify-center gap-2"
+                        >
+                          <Ban size={18} />
+                          Batalkan Paksa
+                        </button>
+                        <p className="text-xs text-gray-500 flex items-center mt-2 w-full">
+                          *Gunakan jika pelanggan meminta pembatalan sebelum waktu expired Midtrans (24 jam).
+                        </p>
+                      </div>
+                    )}
+
+                    {order.status === 'shipped' && (
+                      <div className="flex flex-wrap gap-3 mt-4">
+                        <button 
+                          onClick={() => openModal(order.id, 'completed', 'Tandai Selesai', 'Apakah pelanggan sudah mengkonfirmasi bahwa mereka telah menerima pesanan ini dengan baik?', 'Tandai Selesai')}
+                          disabled={isUpdatingStatus[order.id]}
+                          className="bg-emerald-100 text-emerald-800 border border-emerald-200 px-4 py-2 rounded-lg text-sm font-bold hover:bg-emerald-200 flex items-center gap-2 transition-all shadow-sm"
+                        >
+                          <CheckCircle size={16} />
+                          Tandai Selesai
+                        </button>
+                      </div>
+                    )}
+                    
+                    {['failed', 'expired', 'cancelled'].includes(order.status) && (
+                      <div className="text-sm text-gray-500 italic flex items-center gap-2">
+                        <XCircle size={16} className="text-red-400" />
+                        Pesanan ini telah dibatalkan dan stok telah dikembalikan.
+                      </div>
+                    )}
+                    
+                    {order.status === 'completed' && (
+                      <div className="text-sm text-gray-500 italic flex items-center gap-2">
+                        <CheckCircle size={16} className="text-emerald-500" />
+                        Pesanan ini telah selesai.
                       </div>
                     )}
                   </div>
@@ -607,6 +724,18 @@ export default function OrdersManager() {
           )}
         </div>
       )}
+
+      {/* Confirmation Modal */}
+      <ConfirmModal 
+        isOpen={modalConfig.isOpen}
+        onClose={() => setModalConfig(prev => ({ ...prev, isOpen: false }))}
+        onConfirm={() => updateOrderStatus(modalConfig.orderIdToUpdate, modalConfig.newStatus)}
+        title={modalConfig.title}
+        description={modalConfig.description}
+        confirmText={modalConfig.confirmText}
+        isDestructive={modalConfig.isDestructive}
+        isLoading={modalConfig.orderIdToUpdate ? isUpdatingStatus[modalConfig.orderIdToUpdate] : false}
+      />
     </div>
   );
 }

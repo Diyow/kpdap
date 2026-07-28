@@ -15,6 +15,8 @@ export type Product = {
   badge?: string | null;
   category_id?: string | null;
   variations?: any;
+  compare_at_price?: number | null;
+  slug?: string;
 };
 
 export default function ProductCard({ product }: { product: Product }) {
@@ -50,7 +52,7 @@ export default function ProductCard({ product }: { product: Product }) {
   return (
     <>
       <Link
-        href={`/products/${product.id}`}
+        href={`/products/${product.slug || product.id}`}
         className="bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-1 border border-gray-100 flex flex-col group block h-full"
       >
         <div className="relative h-56 w-full overflow-hidden bg-gray-50">
@@ -65,22 +67,31 @@ export default function ProductCard({ product }: { product: Product }) {
             <div className="w-full h-full flex items-center justify-center text-gray-400">No Image</div>
           )}
           
-          {product.badge && (
+          {product.badge ? (
             <div className="absolute top-3 right-3 bg-yellow-400 text-brand-text text-xs font-bold px-2.5 py-1 rounded-md shadow-sm">
               {product.badge}
             </div>
-          )}
+          ) : product.compare_at_price && product.compare_at_price > product.price ? (
+            <div className="absolute top-3 right-3 bg-red-500 text-white text-xs font-bold px-2.5 py-1 rounded-md shadow-sm">
+              {Math.round(((product.compare_at_price - product.price) / product.compare_at_price) * 100)}% OFF
+            </div>
+          ) : null}
         </div>
         <div className="p-5 flex-1 flex flex-col">
           <h3 className="font-bold text-brand-text mb-2 text-lg group-hover:text-brand-green transition-colors line-clamp-2">{product.title}</h3>
           <p className="text-sm text-gray-500 mb-4 flex-1 line-clamp-2">
             {product.description || "Produk berkualitas tinggi dari petani lokal Bali."}
           </p>
-          <div className="mt-auto flex justify-between items-center">
-            <span className="font-bold text-brand-green text-lg">{formatRupiah(product.price)}</span>
+          <div className="mt-auto flex justify-between items-end">
+            <div>
+              {product.compare_at_price && product.compare_at_price > product.price && (
+                <div className="text-xs text-gray-400 line-through mb-0.5">{formatRupiah(product.compare_at_price)}</div>
+              )}
+              <div className="font-bold text-brand-green text-lg leading-tight">{formatRupiah(product.price)}</div>
+            </div>
             <button 
               onClick={handleAddToCart}
-              className="text-sm bg-brand-green text-white px-4 py-2 rounded-lg hover:bg-brand-darkgreen transition-colors shadow-sm"
+              className="text-sm bg-brand-green text-white px-4 py-2.5 rounded-lg hover:bg-brand-darkgreen transition-colors shadow-sm font-medium"
             >
               Beli
             </button>

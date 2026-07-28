@@ -1,14 +1,13 @@
 import Link from "next/link";
-import { createClient } from "@supabase/supabase-js";
+import { createClient } from "@/utils/supabase/server";
+import { cookies } from "next/headers";
 import ProductCard from "./ProductCard";
 
 export default async function ProductsSection() {
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!
-  );
+  const cookieStore = await cookies();
+  const supabase = createClient(cookieStore);
   
-  const { data: products } = await supabase.from("products").select("*").order("id");
+  const { data: products } = await supabase.from("products").select("*").eq("is_active", true).order("id");
 
   return (
     <section id="products" className="py-20 px-4 md:px-8 bg-[#fdfbf7]">

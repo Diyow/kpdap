@@ -18,10 +18,11 @@ export type Product = {
   stock: number;
   images: string[];
   specifications: Record<string, string>;
-  variations: {name: string, price: number}[];
+  variations: {name: string, price: number, stock: number, weight: number}[];
   category_id?: string | null;
   is_active?: boolean;
   weight: number;
+  compare_at_price?: number | null;
 };
 
 const ITEMS_PER_PAGE = 10;
@@ -45,7 +46,7 @@ export default function ProductsManager() {
     setLoading(true);
     let query = supabase
       .from("products")
-      .select("*", { count: "exact" });
+      .select("*, categories(name)", { count: "exact" });
 
     if (searchQuery) {
       query = query.ilike("title", `%${searchQuery}%`);
@@ -77,6 +78,13 @@ export default function ProductsManager() {
   const handleDeleteProduct = async () => {
     if (!productToDelete) return;
     setIsDeleting(true);
+    
+    // Delete product images from storage first
+    const imageUrls = [productToDelete.image, ...(productToDelete.images || [])].filter(Boolean);
+    if (imageUrls.length > 0) {
+      const { deleteStorageFiles } = await import('@/app/actions/storage');
+      await deleteStorageFiles(imageUrls, 'product-images');
+    }
     
     await supabase.from("products").delete().eq("id", productToDelete.id);
     await logAdminActivity("DELETE_PRODUCT", `Menghapus produk: ${productToDelete.title}`);

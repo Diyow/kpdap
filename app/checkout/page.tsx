@@ -10,8 +10,9 @@ import Image from "next/image";
 import Link from "next/link";
 import Script from "next/script";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, ShoppingBag, CreditCard, Loader2 } from "lucide-react";
+import { ArrowLeft, ShoppingBag, CreditCard, Loader2, AlertTriangle } from "lucide-react";
 import toast from "react-hot-toast";
+import ConfirmModal from "../components/ConfirmModal";
 
 declare global {
   interface Window {
@@ -20,10 +21,12 @@ declare global {
 }
 
 export default function CheckoutPage() {
-  const { items, getCartTotal, clearCart } = useCartStore();
+  const { items, getCartTotal, clearCart, pendingOrderId, setPendingOrderId } = useCartStore();
   const [mounted, setMounted] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
+  const [isCancelling, setIsCancelling] = useState(false);
+  const [showCancelModal, setShowCancelModal] = useState(false);
 
   const [formData, setFormData] = useState({
     name: "",
@@ -99,6 +102,25 @@ export default function CheckoutPage() {
     }
   }, [selectedCity, selectedCourier, items]);
 
+  // Verify if pending order is actually still pending
+  useEffect(() => {
+    if (pendingOrderId && mounted) {
+      fetch('/api/order/get', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ order_id: pendingOrderId })
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.order && data.order.status !== 'pending') {
+          // Order is no longer pending (paid, expired, cancelled), clear it
+          setPendingOrderId(null);
+        }
+      })
+      .catch(console.error);
+    }
+  }, [pendingOrderId, mounted, setPendingOrderId]);
+
   if (!mounted) return null;
 
   const formatRupiah = (price: number) => {
@@ -143,6 +165,8 @@ export default function CheckoutPage() {
         throw new Error(data.error || 'Failed to initialize payment');
       }
 
+      setPendingOrderId(data.order_id);
+
       // Show Midtrans Snap Popup
       window.snap.pay(data.token, {
         onSuccess: function (result: any) {
@@ -167,6 +191,30 @@ export default function CheckoutPage() {
       toast.error(error.message);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleCancelOrder = async () => {
+    if (!pendingOrderId) return;
+    setIsCancelling(true);
+    try {
+      const res = await fetch('/api/checkout/cancel', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ order_id: pendingOrderId })
+      });
+      if (res.ok) {
+        toast.success("Pesanan sebelumnya berhasil dibatalkan. Stok telah dikembalikan.");
+        setShowCancelModal(false);
+        setPendingOrderId(null);
+      } else {
+        const errorData = await res.json();
+        toast.error(errorData.error || "Gagal membatalkan pesanan");
+      }
+    } catch (err) {
+      toast.error("Terjadi kesalahan sistem");
+    } finally {
+      setIsCancelling(false);
     }
   };
 
@@ -196,6 +244,25 @@ export default function CheckoutPage() {
             <ArrowLeft size={16} />
             Kembali Belanja
           </Link>
+
+          {pendingOrderId && (
+            <div className="bg-yellow-50 text-yellow-800 p-5 rounded-2xl border border-yellow-200 mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-sm">
+              <div className="flex items-start gap-3">
+                <AlertTriangle className="text-yellow-600 mt-0.5 shrink-0" size={20} />
+                <div>
+                  <p className="font-bold text-yellow-900 text-base">Menunggu Pembayaran</p>
+                  <p className="text-sm mt-1 opacity-90">Anda memiliki pesanan yang belum dibayar. Batalkan pesanan tersebut jika Anda ingin mengubah metode pembayaran atau membuat pesanan baru.</p>
+                </div>
+              </div>
+              <button 
+                onClick={() => setShowCancelModal(true)}
+                disabled={isCancelling}
+                className="bg-white text-red-600 border border-red-200 px-6 py-2.5 rounded-xl font-bold text-sm hover:bg-red-50 disabled:opacity-50 whitespace-nowrap shadow-sm transition-colors"
+              >
+                {isCancelling ? "Membatalkan..." : "Batalkan Pesanan"}
+              </button>
+            </div>
+          )}
           
           <div className="flex flex-col lg:flex-row gap-8">
             {/* Form Section */}
@@ -341,8 +408,8 @@ export default function CheckoutPage() {
                   <div className="pt-4">
                     <button 
                       type="submit" 
-                      disabled={isLoading}
-                      className="w-full bg-brand-green text-white py-4 rounded-xl font-bold text-lg hover:bg-brand-darkgreen transition-colors flex items-center justify-center gap-2 shadow-sm disabled:opacity-70 disabled:cursor-not-allowed"
+                      disabled={isLoading || !!pendingOrderId}
+                      className="w-full bg-brand-green text-white py-4 rounded-xl font-bold text-lg hover:bg-brand-darkgreen transition-all shadow-md flex items-center justify-center gap-2 mt-8 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       {isLoading ? (
                         <>
@@ -420,6 +487,18 @@ export default function CheckoutPage() {
       <Script 
         src={process.env.NEXT_PUBLIC_MIDTRANS_IS_PRODUCTION === 'true' ? "https://app.midtrans.com/snap/snap.js" : "https://app.sandbox.midtrans.com/snap/snap.js"}
         data-client-key={process.env.NEXT_PUBLIC_MIDTRANS_CLIENT_KEY || 'SB-Mid-client-YOUR_CLIENT_KEY_HERE'}
+      />
+      
+      <ConfirmModal 
+        isOpen={showCancelModal}
+        onClose={() => setShowCancelModal(false)}
+        onConfirm={handleCancelOrder}
+        title="Batalkan Pesanan?"
+        description="Apakah Anda yakin ingin membatalkan pesanan sebelumnya? Stok produk akan dikembalikan sehingga Anda dapat memesan kembali."
+        confirmText="Ya, Batalkan"
+        cancelText="Kembali"
+        isDestructive={true}
+        isLoading={isCancelling}
       />
     </>
   );

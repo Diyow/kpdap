@@ -10,6 +10,8 @@ import toast from "react-hot-toast";
 import { useSearchParams } from "next/navigation";
 import { createClient } from "@/utils/supabase/client";
 import { Skeleton } from "@/app/components/ui/Skeleton";
+import ConfirmModal from "../../components/ConfirmModal";
+import { useCartStore } from "@/store/useCartStore";
 
 declare global {
   interface Window {
@@ -20,6 +22,7 @@ declare global {
 function CheckoutSuccessContent() {
   const searchParams = useSearchParams();
   const orderId = searchParams.get("order_id");
+  const { setPendingOrderId } = useCartStore();
   
   const [order, setOrder] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -43,10 +46,12 @@ function CheckoutSuccessContent() {
   };
 
   const [isCompleting, setIsCompleting] = useState(false);
+  const [isCancelling, setIsCancelling] = useState(false);
+  
+  const [showCompleteModal, setShowCompleteModal] = useState(false);
+  const [showCancelModal, setShowCancelModal] = useState(false);
 
   const handleCompleteOrder = async () => {
-    if (!confirm('Apakah Anda yakin pesanan sudah diterima dengan baik?')) return;
-    
     setIsCompleting(true);
     try {
       const res = await fetch('/api/order/complete', {
@@ -62,6 +67,7 @@ function CheckoutSuccessContent() {
       if (!res.ok) throw new Error(data.error);
       
       toast.success('Terima kasih! Pesanan telah diselesaikan.');
+      setShowCompleteModal(false);
       fetchOrder(true);
     } catch (err: any) {
       toast.error('Gagal menyelesaikan pesanan: ' + err.message);
@@ -70,10 +76,35 @@ function CheckoutSuccessContent() {
     }
   };
 
+  const handleCancelOrder = async () => {
+    setIsCancelling(true);
+    try {
+      const res = await fetch('/api/checkout/cancel', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ order_id: orderId })
+      });
+      if (res.ok) {
+        toast.success("Pesanan berhasil dibatalkan. Stok telah dikembalikan.");
+        setShowCancelModal(false);
+        setPendingOrderId(null);
+        fetchOrder(true);
+      } else {
+        const errorData = await res.json();
+        toast.error(errorData.error || "Gagal membatalkan pesanan");
+      }
+    } catch (err) {
+      toast.error("Terjadi kesalahan sistem");
+    } finally {
+      setIsCancelling(false);
+    }
+  };
+
   const handlePayNow = () => {
     if (order && order.payment_token && window.snap) {
       window.snap.pay(order.payment_token, {
         onSuccess: function () {
+          setPendingOrderId(null);
           fetchOrder(true);
         },
         onPending: function () {
@@ -243,7 +274,7 @@ function CheckoutSuccessContent() {
           {order?.status === 'shipped' && (
             <div className="mb-8 flex justify-center">
               <button
-                onClick={handleCompleteOrder}
+                onClick={() => setShowCompleteModal(true)}
                 disabled={isCompleting}
                 className="bg-brand-green text-white font-bold px-8 py-4 rounded-xl shadow-lg hover:bg-brand-darkgreen transition-all hover:scale-105 active:scale-95 disabled:opacity-50 disabled:scale-100 flex items-center gap-2"
               >
@@ -254,13 +285,21 @@ function CheckoutSuccessContent() {
           )}
 
           {order?.status === 'pending' && order?.payment_token && (
-            <div className="mb-8 flex justify-center">
+            <div className="mb-8 flex flex-col items-center gap-3">
               <button
                 onClick={handlePayNow}
-                className="bg-brand-green text-white font-bold px-8 py-4 rounded-xl shadow-lg hover:bg-brand-darkgreen transition-all hover:scale-105 active:scale-95 flex items-center gap-2"
+                className="w-full sm:w-auto bg-brand-green text-white font-bold px-10 py-4 rounded-xl shadow-lg hover:bg-brand-darkgreen transition-all hover:scale-105 active:scale-95 flex items-center justify-center gap-2"
               >
                 <CreditCard size={20} />
                 Lanjutkan Pembayaran
+              </button>
+              <button
+                onClick={() => setShowCancelModal(true)}
+                disabled={isCancelling}
+                className="w-full sm:w-auto text-red-500 hover:text-red-700 font-medium px-6 py-2 rounded-lg transition-colors flex items-center justify-center gap-1.5 text-sm disabled:opacity-50"
+              >
+                <Ban size={16} />
+                {isCancelling ? "Membatalkan..." : "Batalkan pesanan ini"}
               </button>
             </div>
           )}
@@ -286,6 +325,29 @@ function CheckoutSuccessContent() {
       <Script 
         src={process.env.NEXT_PUBLIC_MIDTRANS_IS_PRODUCTION === 'true' ? "https://app.midtrans.com/snap/snap.js" : "https://app.sandbox.midtrans.com/snap/snap.js"}
         data-client-key={process.env.NEXT_PUBLIC_MIDTRANS_CLIENT_KEY || 'SB-Mid-client-YOUR_CLIENT_KEY_HERE'}
+      />
+      
+      <ConfirmModal 
+        isOpen={showCancelModal}
+        onClose={() => setShowCancelModal(false)}
+        onConfirm={handleCancelOrder}
+        title="Batalkan Pesanan?"
+        description="Apakah Anda yakin ingin membatalkan pesanan ini? Stok produk akan dikembalikan dan Anda harus membuat pesanan baru jika ingin mengubah metode pembayaran."
+        confirmText="Ya, Batalkan"
+        cancelText="Kembali"
+        isDestructive={true}
+        isLoading={isCancelling}
+      />
+
+      <ConfirmModal 
+        isOpen={showCompleteModal}
+        onClose={() => setShowCompleteModal(false)}
+        onConfirm={handleCompleteOrder}
+        title="Pesanan Diterima?"
+        description="Apakah Anda yakin pesanan sudah Anda terima dengan baik? Aksi ini tidak dapat dibatalkan."
+        confirmText="Ya, Selesai"
+        cancelText="Batal"
+        isLoading={isCompleting}
       />
     </>
   );

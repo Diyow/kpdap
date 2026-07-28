@@ -44,7 +44,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'RajaOngkir API Key is not configured.' }, { status: 500 });
     }
 
-    const response = await fetch('https://api.rajaongkir.com/starter/cost', {
+    const response = await fetch('https://rajaongkir.komerce.id/api/v1/calculate/domestic-cost', {
       method: 'POST',
       headers: {
         'content-type': 'application/x-www-form-urlencoded',
@@ -54,17 +54,46 @@ export async function POST(request: Request) {
         origin: origin,
         destination: destination.toString(),
         weight: weight.toString(),
-        courier: courier.toLowerCase()
+        courier: courier.toLowerCase(),
+        price: 'lowest'
       }).toString()
     });
 
     const data = await response.json();
 
     if (!response.ok) {
-      throw new Error(data.rajaongkir?.status?.description || 'Failed to fetch shipping cost');
+      throw new Error(data.meta?.message || 'Failed to fetch shipping cost');
     }
 
-    return NextResponse.json(data.rajaongkir.results);
+    // Map Komerce format to old RajaOngkir structure
+    const komerceData = data.data || [];
+    const couriers = new Map();
+    
+    komerceData.forEach((item: any) => {
+      if (!couriers.has(item.code)) {
+        couriers.set(item.code, {
+          code: item.code,
+          name: item.name,
+          costs: []
+        });
+      }
+      
+      couriers.get(item.code).costs.push({
+        service: item.service,
+        description: item.description,
+        cost: [
+          {
+            value: item.cost,
+            etd: item.etd,
+            note: ""
+          }
+        ]
+      });
+    });
+
+    const mappedResults = Array.from(couriers.values());
+
+    return NextResponse.json(mappedResults);
   } catch (error: any) {
     console.error('RajaOngkir Cost Error:', error);
     return NextResponse.json({ error: error.message }, { status: 500 });

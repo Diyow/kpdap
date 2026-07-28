@@ -8,6 +8,8 @@ import toast from "react-hot-toast";
 type Variation = {
   name: string;
   price: number;
+  stock: number;
+  weight: number;
 };
 
 type ProductOptionsProps = {
@@ -18,30 +20,32 @@ type ProductOptionsProps = {
   };
   variations: any[];
   price: number;
+  compare_at_price?: number | null;
   stock: number;
 };
 
-export default function ProductOptions({ product, variations, price, stock }: ProductOptionsProps) {
+export default function ProductOptions({ product, variations, price, compare_at_price, stock }: ProductOptionsProps) {
   const normalizedVariations: Variation[] = (variations || []).map(v => 
-    typeof v === 'string' ? { name: v, price: price } : v
+    typeof v === 'string' ? { name: v, price: price, stock: stock, weight: 1000 } : v
   );
 
   const [selectedVariationName, setSelectedVariationName] = useState<string>(normalizedVariations?.[0]?.name || "");
   const [quantity, setQuantity] = useState(1);
   const { addItem, updateQuantity, setIsCartOpen } = useCartStore();
 
+  const activeVariation = normalizedVariations.find(v => v.name === selectedVariationName);
+  const displayPrice = activeVariation?.price ?? price;
+  const displayStock = activeVariation?.stock ?? stock;
+  const isUnlimited = displayStock === -1;
+  const isOutOfStock = !isUnlimited && displayStock <= 0;
+
   const increment = () => {
-    if (quantity < stock) setQuantity(quantity + 1);
+    if (isUnlimited || quantity < displayStock) setQuantity(quantity + 1);
   };
 
   const decrement = () => {
     if (quantity > 1) setQuantity(quantity - 1);
   };
-
-  const isOutOfStock = stock <= 0;
-
-  const activeVariation = normalizedVariations.find(v => v.name === selectedVariationName);
-  const displayPrice = activeVariation ? activeVariation.price : price;
 
   const formatRupiah = (p: number) => {
     return new Intl.NumberFormat('id-ID', {
@@ -53,11 +57,21 @@ export default function ProductOptions({ product, variations, price, stock }: Pr
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-4">
-        <p className="text-3xl font-bold text-brand-green">{formatRupiah(displayPrice)}</p>
-        <span className={`text-sm font-medium px-3 py-1 rounded-full ${isOutOfStock ? "bg-red-100 text-red-700" : "bg-green-100 text-green-700"}`}>
-          {isOutOfStock ? "Habis Terjual" : `Sisa ${stock} barang`}
-        </span>
+      <div className="flex flex-col gap-1">
+        {compare_at_price && compare_at_price > displayPrice && (
+          <div className="flex items-center gap-2">
+            <span className="text-gray-400 line-through text-lg">{formatRupiah(compare_at_price)}</span>
+            <span className="bg-red-100 text-red-600 text-xs font-bold px-2 py-1 rounded-md">
+              {Math.round(((compare_at_price - displayPrice) / compare_at_price) * 100)}% OFF
+            </span>
+          </div>
+        )}
+        <div className="flex items-center gap-4">
+          <p className="text-3xl font-bold text-brand-green">{formatRupiah(displayPrice)}</p>
+          <span className={`text-sm font-medium px-3 py-1 rounded-full ${isOutOfStock ? "bg-red-100 text-red-700" : "bg-green-100 text-green-700"}`}>
+            {isOutOfStock ? "Habis Terjual" : isUnlimited ? "Tersedia" : `Sisa ${displayStock} barang`}
+          </span>
+        </div>
       </div>
 
       {normalizedVariations && normalizedVariations.length > 0 && (
@@ -89,7 +103,7 @@ export default function ProductOptions({ product, variations, price, stock }: Pr
               <Minus size={18} />
             </button>
             <span className="w-12 text-center font-medium">{isOutOfStock ? 0 : quantity}</span>
-            <button onClick={increment} disabled={isOutOfStock || quantity >= stock} className="p-3 text-gray-500 hover:bg-gray-50 hover:text-brand-green transition-colors disabled:opacity-50">
+            <button onClick={increment} disabled={isOutOfStock || (!isUnlimited && quantity >= displayStock)} className="p-3 text-gray-500 hover:bg-gray-50 hover:text-brand-green transition-colors disabled:opacity-50">
               <Plus size={18} />
             </button>
           </div>
@@ -99,21 +113,22 @@ export default function ProductOptions({ product, variations, price, stock }: Pr
       <button 
         disabled={isOutOfStock} 
         onClick={() => {
-          const title = selectedVariationName ? `${product.title} (${selectedVariationName})` : product.title;
-          
           addItem(
             {
               id: product.id,
-              title: title,
-              price: displayPrice,
+              title: product.title,
+              price: price,
               image: product.image,
+              weight: activeVariation?.weight || 1000,
+              availableVariations: normalizedVariations.length > 0 ? normalizedVariations : undefined,
             },
             selectedVariationName,
             displayPrice,
             quantity
           );
           
-          toast.success(`${title} ditambahkan ke keranjang!`);
+          const toastTitle = selectedVariationName ? `${product.title} (${selectedVariationName})` : product.title;
+          toast.success(`${toastTitle} ditambahkan ke keranjang!`);
           setIsCartOpen(true);
         }}
         className="w-full bg-brand-green text-white font-bold text-lg py-4 rounded-xl hover:bg-brand-darkgreen transition-colors shadow-md hover:shadow-lg flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed mt-8"

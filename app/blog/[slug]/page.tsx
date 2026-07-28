@@ -1,10 +1,11 @@
-import { createClient } from "@supabase/supabase-js";
+import { createClient } from "@/utils/supabase/server";
+import { cookies } from "next/headers";
 import Header from "../../components/Header";
 import Footer from "../../components/Footer";
 import Link from "next/link";
-import { ArrowLeft, Calendar, User, Share2, Link2 } from "lucide-react";
-import { notFound } from "next/navigation";
+import { Calendar, User, Share2, Link2, ArrowLeft } from "lucide-react";
 import ReactMarkdown from "react-markdown";
+import ShareButtons from "../../components/ShareButtons";
 import type { Metadata } from 'next'
 
 export const runtime = 'edge';
@@ -17,14 +18,14 @@ type Props = {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!
-  );
+  const decodedSlug = decodeURIComponent(slug);
+  const cookieStore = await cookies();
+  const supabase = createClient(cookieStore);
+
   const { data: article } = await supabase
     .from("articles")
     .select("title, excerpt, cover_image_url")
-    .eq("slug", slug)
+    .eq("slug", decodedSlug)
     .single();
 
   if (!article) return { title: 'Artikel Tidak Ditemukan - KPDAP' };
@@ -40,22 +41,36 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function ArticlePage({ params }: Props) {
   const { slug } = await params;
+  const decodedSlug = decodeURIComponent(slug);
   
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!
-  );
+  const cookieStore = await cookies();
+  const supabase = createClient(cookieStore);
+
   const { data: article } = await supabase
     .from("articles")
     .select("*")
-    .eq("slug", slug)
+    .eq("slug", decodedSlug)
     .single();
 
   const { data: { user } } = await supabase.auth.getUser();
   const isAdmin = !!user;
 
   if (!article || (!article.is_published && !isAdmin)) {
-    notFound();
+    return (
+      <>
+        <Header />
+        <main className="flex-1 w-full flex flex-col items-center justify-center min-h-[60vh] bg-brand-lightbg">
+          <h1 className="text-2xl font-bold text-brand-text mb-4">
+            Artikel Tidak Ditemukan
+          </h1>
+          <p className="text-gray-500 mb-6">Artikel yang Anda cari mungkin telah dihapus atau tidak tersedia.</p>
+          <Link href="/blog" className="text-brand-green hover:underline font-medium">
+            Kembali ke Semua Artikel
+          </Link>
+        </main>
+        <Footer />
+      </>
+    );
   }
 
   const { data: otherArticles } = await supabase
@@ -119,15 +134,7 @@ export default async function ArticlePage({ params }: Props) {
                   Terakhir diperbarui: {new Date(article.updated_at).toLocaleDateString('id-ID')}
                 </div>
                 
-                <div className="flex items-center gap-3">
-                  <span className="text-sm font-bold text-gray-700 mr-2">Bagikan:</span>
-                  <button className="w-10 h-10 rounded-full bg-gray-50 border border-gray-100 flex items-center justify-center text-gray-600 hover:text-brand-green hover:border-brand-green transition-colors" title="Salin Tautan">
-                    <Link2 size={18} />
-                  </button>
-                  <button className="w-10 h-10 rounded-full bg-gray-50 border border-gray-100 flex items-center justify-center text-gray-600 hover:text-brand-green hover:border-brand-green transition-colors" title="Bagikan">
-                    <Share2 size={18} />
-                  </button>
-                </div>
+                <ShareButtons title={article.title} />
               </div>
             </div>
           </div>

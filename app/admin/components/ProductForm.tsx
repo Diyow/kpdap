@@ -37,11 +37,15 @@ export default function ProductForm({ initialData, onSave, onCancel }: ProductFo
   const [selectedThumbnail, setSelectedThumbnail] = useState<string | null>(initialData?.image || null);
   
   // Backward compatibility for variations
-  const [variations, setVariations] = useState<{name: string, price: number}[]>(
+  const [variations, setVariations] = useState<{name: string, price: number, stock: number, weight: number}[]>(
     (initialData?.variations || []).map(v => 
-      typeof v === 'string' ? { name: v, price: initialData?.price || 0 } : v
+      typeof v === 'string' 
+        ? { name: v, price: initialData?.price || 0, stock: initialData?.stock || 0, weight: initialData?.weight || 1000 } 
+        : { ...v, stock: v.stock ?? (initialData?.stock || 0), weight: v.weight ?? (initialData?.weight || 1000) }
     )
   );
+
+  const [isUnlimitedStock, setIsUnlimitedStock] = useState(initialData?.stock === -1);
 
   const [specifications, setSpecifications] = useState<{name: string, value: string}[]>(() => {
     if (!initialData?.specifications) return [];
@@ -211,11 +215,16 @@ export default function ProductForm({ initialData, onSave, onCancel }: ProductFo
       return acc;
     }, {} as Record<string, string>);
 
+    const titleStr = formData.get("title") as string;
+    const slugStr = titleStr.trim().toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)+/g, "");
+
     const productData = {
-      title: formData.get("title") as string,
+      title: titleStr,
+      slug: slugStr,
       description: (formData.get("description") as string) || null,
       price: parseInt(formData.get("price") as string) || 0,
-      stock: parseInt(formData.get("stock") as string) || 0,
+      compare_at_price: formData.get("compare_at_price") ? parseInt(formData.get("compare_at_price") as string) : null,
+      stock: isUnlimitedStock ? -1 : (parseInt(formData.get("stock") as string) || 0),
       weight: parseInt(formData.get("weight") as string) || 1000,
       badge: (formData.get("badge") as string) || null,
       image: newThumbnailUrl,
@@ -229,6 +238,16 @@ export default function ProductForm({ initialData, onSave, onCancel }: ProductFo
     if (initialData) {
       await supabase.from("products").update(productData).eq("id", initialData.id);
       await logAdminActivity("UPDATE_PRODUCT", `Memperbarui produk: ${productData.title}`);
+      
+      // Cleanup deleted images from storage
+      const initialImages = [initialData.image, ...(initialData.images || [])].filter(Boolean);
+      const newImages = [newThumbnailUrl, ...finalGallery].filter(Boolean);
+      const deletedImages = initialImages.filter(url => !newImages.includes(url));
+      
+      if (deletedImages.length > 0) {
+        const { deleteStorageFiles } = await import('@/app/actions/storage');
+        await deleteStorageFiles(deletedImages, 'product-images');
+      }
     } else {
       await supabase.from("products").insert([productData]);
       await logAdminActivity("CREATE_PRODUCT", `Menambahkan produk baru: ${productData.title}`);
@@ -334,17 +353,27 @@ export default function ProductForm({ initialData, onSave, onCancel }: ProductFo
           <textarea name="description" defaultValue={initialData?.description || ""} rows={3} className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-brand-green/20 focus:border-brand-green transition-colors outline-none" />
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
           <div>
             <label className="block text-sm font-medium text-brand-text mb-1">Harga (Rp) <span className="text-red-500">*</span></label>
             <input type="number" name="price" defaultValue={initialData?.price || ""} required className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-brand-green/20 focus:border-brand-green transition-colors outline-none" placeholder="75000" />
           </div>
           <div>
-            <label className="block text-sm font-medium text-brand-text mb-1">Stok <span className="text-red-500">*</span></label>
-            <input type="number" name="stock" defaultValue={initialData?.stock || 0} min="0" required className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-brand-green/20 focus:border-brand-green transition-colors outline-none" />
+            <label className="block text-sm font-medium text-brand-text mb-1">Coret Harga (Opsional)</label>
+            <input type="number" name="compare_at_price" defaultValue={initialData?.compare_at_price || ""} className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-brand-green/20 focus:border-brand-green transition-colors outline-none" placeholder="150000" />
           </div>
           <div>
-            <label className="block text-sm font-medium text-brand-text mb-1">Berat (Gram) <span className="text-red-500">*</span></label>
+            <div className="flex items-center justify-between mb-1">
+              <label className="block text-sm font-medium text-brand-text">Stok <span className="text-red-500">*</span></label>
+              <label className="flex items-center gap-1 cursor-pointer">
+                <input type="checkbox" checked={isUnlimitedStock} onChange={(e) => setIsUnlimitedStock(e.target.checked)} className="w-3 h-3 text-brand-green rounded focus:ring-brand-green" />
+                <span className="text-[10px] text-gray-500 font-medium">Tanpa Batas</span>
+              </label>
+            </div>
+            <input type="number" name="stock" defaultValue={initialData?.stock === -1 ? 0 : (initialData?.stock || 0)} min="0" required={!isUnlimitedStock} disabled={isUnlimitedStock} className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-brand-green/20 focus:border-brand-green transition-colors outline-none disabled:bg-gray-100 disabled:text-gray-400" />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-brand-text mb-1">Berat Utama (Gram) <span className="text-red-500">*</span></label>
             <input type="number" name="weight" defaultValue={initialData?.weight || 1000} min="1" required className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-brand-green/20 focus:border-brand-green transition-colors outline-none" placeholder="1000" />
           </div>
           <div>
@@ -363,7 +392,12 @@ export default function ProductForm({ initialData, onSave, onCancel }: ProductFo
             <h3 className="font-semibold text-brand-text text-sm">Variasi & Harga Khusus (Opsional)</h3>
             <button 
               type="button" 
-              onClick={() => setVariations([...variations, { name: "", price: parseInt((document.querySelector('input[name="price"]') as HTMLInputElement)?.value || "0", 10) }])}
+              onClick={() => setVariations([...variations, { 
+                name: "", 
+                price: parseInt((document.querySelector('input[name="price"]') as HTMLInputElement)?.value || "0", 10),
+                stock: parseInt((document.querySelector('input[name="stock"]') as HTMLInputElement)?.value || "0", 10),
+                weight: parseInt((document.querySelector('input[name="weight"]') as HTMLInputElement)?.value || "1000", 10)
+              }])}
               className="text-xs font-medium text-brand-green hover:underline flex items-center gap-1"
             >
               <Plus size={14} /> Tambah Variasi
@@ -373,11 +407,12 @@ export default function ProductForm({ initialData, onSave, onCancel }: ProductFo
           {variations.length > 0 ? (
             <div className="space-y-3">
               {variations.map((v, idx) => (
-                <div key={idx} className="flex gap-3 items-start">
-                  <div className="w-1/2">
+                <div key={idx} className="flex flex-wrap md:flex-nowrap gap-3 items-start p-3 border border-gray-200 rounded-lg bg-white relative">
+                  <div className="w-full md:w-1/4">
+                    <label className="block text-xs font-medium text-gray-500 mb-1">Nama Variasi</label>
                     <input 
                       required
-                      placeholder="Cth: 250g"
+                      placeholder="Cth: Size L"
                       value={v.name} 
                       onChange={(e) => {
                         const newVars = [...variations];
@@ -387,27 +422,62 @@ export default function ProductForm({ initialData, onSave, onCancel }: ProductFo
                       className="w-full px-3 py-2 text-sm border border-gray-200 rounded-md focus:border-brand-green focus:ring-1 focus:ring-brand-green outline-none transition-shadow" 
                     />
                   </div>
-                  <div className="flex-1 relative">
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-gray-500">Rp</span>
+                  <div className="w-full md:w-1/4">
+                    <label className="block text-xs font-medium text-gray-500 mb-1">Harga</label>
+                    <div className="relative">
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-gray-500">Rp</span>
+                      <input 
+                        required
+                        type="number"
+                        placeholder="75000"
+                        value={v.price} 
+                        onChange={(e) => {
+                          const newVars = [...variations];
+                          newVars[idx].price = parseInt(e.target.value || "0", 10);
+                          setVariations(newVars);
+                        }}
+                        className="w-full pl-9 pr-3 py-2 text-sm border border-gray-200 rounded-md focus:border-brand-green focus:ring-1 focus:ring-brand-green outline-none transition-shadow" 
+                      />
+                    </div>
+                  </div>
+                  <div className="w-1/2 md:w-1/5">
+                    <label className="block text-xs font-medium text-gray-500 mb-1">Stok</label>
                     <input 
                       required
                       type="number"
-                      placeholder="75000"
-                      value={v.price} 
+                      min="0"
+                      placeholder="0"
+                      value={v.stock} 
                       onChange={(e) => {
                         const newVars = [...variations];
-                        newVars[idx].price = parseInt(e.target.value || "0", 10);
+                        newVars[idx].stock = parseInt(e.target.value || "0", 10);
                         setVariations(newVars);
                       }}
-                      className="w-full pl-9 pr-3 py-2 text-sm border border-gray-200 rounded-md focus:border-brand-green focus:ring-1 focus:ring-brand-green outline-none transition-shadow" 
+                      className="w-full px-3 py-2 text-sm border border-gray-200 rounded-md focus:border-brand-green focus:ring-1 focus:ring-brand-green outline-none transition-shadow" 
+                    />
+                  </div>
+                  <div className="w-1/2 md:w-1/5">
+                    <label className="block text-xs font-medium text-gray-500 mb-1">Berat (g)</label>
+                    <input 
+                      required
+                      type="number"
+                      min="1"
+                      placeholder="1000"
+                      value={v.weight} 
+                      onChange={(e) => {
+                        const newVars = [...variations];
+                        newVars[idx].weight = parseInt(e.target.value || "0", 10);
+                        setVariations(newVars);
+                      }}
+                      className="w-full px-3 py-2 text-sm border border-gray-200 rounded-md focus:border-brand-green focus:ring-1 focus:ring-brand-green outline-none transition-shadow" 
                     />
                   </div>
                   <button 
                     type="button"
                     onClick={() => setVariations(variations.filter((_, i) => i !== idx))}
-                    className="p-2 text-red-500 hover:bg-red-50 rounded-md transition-colors border border-transparent hover:border-red-100"
+                    className="absolute -right-2 -top-2 p-1.5 bg-white text-red-500 shadow-sm border border-gray-200 rounded-full hover:bg-red-50 hover:border-red-200 transition-colors"
                   >
-                    <Trash2 size={16} />
+                    <Trash2 size={14} />
                   </button>
                 </div>
               ))}
@@ -417,7 +487,12 @@ export default function ProductForm({ initialData, onSave, onCancel }: ProductFo
               <p className="text-xs text-gray-500 mb-2">Belum ada variasi produk</p>
               <button 
                 type="button" 
-                onClick={() => setVariations([{ name: "", price: parseInt((document.querySelector('input[name="price"]') as HTMLInputElement)?.value || "0", 10) }])}
+                onClick={() => setVariations([{ 
+                  name: "", 
+                  price: parseInt((document.querySelector('input[name="price"]') as HTMLInputElement)?.value || "0", 10),
+                  stock: isUnlimitedStock ? 999 : parseInt((document.querySelector('input[name="stock"]') as HTMLInputElement)?.value || "0", 10),
+                  weight: parseInt((document.querySelector('input[name="weight"]') as HTMLInputElement)?.value || "1000", 10)
+                }])}
                 className="text-xs font-medium text-brand-green hover:underline"
               >
                 + Tambah Variasi

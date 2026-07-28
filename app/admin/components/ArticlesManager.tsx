@@ -33,7 +33,7 @@ export default function ArticlesManager() {
   const [selectedArticle, setSelectedArticle] = useState<Article | undefined>(undefined);
 
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
-  const [articleToDelete, setArticleToDelete] = useState<{ id: string, title: string } | null>(null);
+  const [articleToDelete, setArticleToDelete] = useState<{ id: string, title: string, cover_image_url: string | null } | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
   const supabase = createClient();
@@ -71,14 +71,19 @@ export default function ArticlesManager() {
     fetchArticles();
   };
 
-  const confirmDelete = (id: string, title: string) => {
-    setArticleToDelete({ id, title });
+  const confirmDelete = (id: string, title: string, cover_image_url: string | null) => {
+    setArticleToDelete({ id, title, cover_image_url });
     setDeleteModalOpen(true);
   };
 
   const handleDeleteArticle = async () => {
     if (!articleToDelete) return;
     setIsDeleting(true);
+
+    if (articleToDelete.cover_image_url) {
+      const { deleteStorageFiles } = await import('@/app/actions/storage');
+      await deleteStorageFiles([articleToDelete.cover_image_url], 'article-images');
+    }
 
     const { error } = await supabase.from("articles").delete().eq("id", articleToDelete.id);
 
@@ -243,7 +248,7 @@ export default function ArticlesManager() {
                         <Edit size={18} />
                       </button>
                       <button
-                        onClick={() => confirmDelete(article.id, article.title)}
+                        onClick={() => confirmDelete(article.id, article.title, article.cover_image_url)}
                         className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                         title="Hapus Artikel"
                       >
