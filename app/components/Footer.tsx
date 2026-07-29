@@ -80,17 +80,22 @@ export default async function Footer() {
         {/* Supported By */}
         <div>
           <h3 className="text-white font-bold mb-6">Didukung Oleh</h3>
-          {/* <div className="flex flex-wrap gap-3">
-            <div className="bg-white px-4 py-2 rounded flex items-center justify-center">
-              <span className="text-brand-green font-bold text-xs uppercase">Bank<br/>Indonesia</span>
+          <div className="flex flex-col gap-2.5 mt-1">
+            <div className="bg-white p-3 rounded-xl flex items-center justify-center shadow-sm w-fit">
+              <div className="relative w-32 h-14">
+                <Image
+                  src="/stikom.png"
+                  alt="ITB STIKOM Bali"
+                  fill
+                  className="object-contain"
+                  sizes="128px"
+                />
+              </div>
             </div>
-            <div className="bg-white px-4 py-2 rounded flex items-center justify-center">
-              <span className="text-blue-800 font-bold text-xs uppercase">OJK</span>
-            </div>
-            <div className="bg-white px-4 py-2 rounded flex items-center justify-center">
-              <span className="text-gray-800 font-bold text-xs uppercase">Pemkab<br/>Tabanan</span>
-            </div>
-          </div> */}
+            <span className="text-[#d0c9c3] text-xs font-medium leading-relaxed max-w-[160px]">
+              Institut Teknologi dan Bisnis STIKOM Bali
+            </span>
+          </div>
         </div>
       </div>
 

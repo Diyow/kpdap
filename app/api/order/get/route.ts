@@ -1,11 +1,29 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { sanitizeFilterValue } from '@/utils/sanitize';
+import { checkRateLimit, getIpAddress } from '@/utils/rate-limit';
 
 export const runtime = 'edge';
 
 
 export async function POST(request: Request) {
   try {
+    // 1. Rate Limiting Check (e.g., 20 lookups per minute per IP)
+    const ip = getIpAddress(request);
+    const rateLimit = await checkRateLimit(ip, 'order_lookup', 20, 60);
+    if (!rateLimit.allowed) {
+      return NextResponse.json(
+        { error: 'Terlalu banyak permintaan. Silakan coba lagi nanti.' },
+        { 
+          status: 429,
+          headers: {
+            'Retry-After': '60'
+          }
+        }
+      );
+    }
+    // --- End Rate Limiting ---
+
     const body = await request.json();
     const { order_id, contact } = body;
     
@@ -27,7 +45,8 @@ export async function POST(request: Request) {
 
     // If contact is provided (from track-order page), require a match
     if (contact) {
-       query = query.or(`customer_phone.ilike.%${contact.trim()}%,customer_email.ilike.%${contact.trim()}%`);
+       const sanitized = sanitizeFilterValue(contact);
+       query = query.or(`customer_phone.ilike.%${sanitized}%,customer_email.ilike.%${sanitized}%`);
     }
 
     const { data, error } = await query.single();

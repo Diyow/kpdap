@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { createClient } from "@/utils/supabase/client";
+import { sanitizeFilterValue } from "@/utils/sanitize";
 import { Search, ChevronLeft, ChevronRight, Plus, FileText, Trash2, Edit, Globe, Lock, Loader2, ExternalLink, AlertCircle } from "lucide-react";
 import toast from "react-hot-toast";
 import ArticleForm from "./ArticleForm";
@@ -43,7 +44,8 @@ export default function ArticlesManager() {
     let query = supabase.from("articles").select("*", { count: "exact" });
 
     if (searchQuery) {
-      query = query.or(`title.ilike.%${searchQuery}%,excerpt.ilike.%${searchQuery}%`);
+      const sanitized = sanitizeFilterValue(searchQuery);
+      query = query.or(`title.ilike.%${sanitized}%,excerpt.ilike.%${sanitized}%`);
     }
 
     const from = (currentPage - 1) * ITEMS_PER_PAGE;

@@ -40,14 +40,10 @@ export async function proxy(request: NextRequest) {
       return NextResponse.redirect(url);
     }
 
-    // RBAC: Verify if the user is genuinely an admin
-    const { data: adminRole } = await supabase
-      .from('admin_roles')
-      .select('role')
-      .eq('id', user.id)
-      .single();
+    // RBAC: Verify if the user is genuinely an admin using the custom claim in the JWT
+    const isAdmin = user.app_metadata?.role === 'admin';
 
-    if (!adminRole) {
+    if (!isAdmin) {
       // User is logged in but NOT an admin.
       // Eject them to the homepage.
       const url = request.nextUrl.clone();

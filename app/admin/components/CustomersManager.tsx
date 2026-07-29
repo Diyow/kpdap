@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { createClient } from "@/utils/supabase/client";
+import { sanitizeFilterValue } from "@/utils/sanitize";
 import { Search, ChevronLeft, ChevronRight, UserCircle, Phone, Mail, Download } from "lucide-react";
 import { Skeleton } from "@/app/components/ui/Skeleton";
 import toast from "react-hot-toast";
@@ -33,7 +34,8 @@ export default function CustomersManager() {
       .select("*", { count: "exact" });
 
     if (searchQuery) {
-      query = query.or(`name.ilike.%${searchQuery}%,email.ilike.%${searchQuery}%,phone.ilike.%${searchQuery}%`);
+      const sanitized = sanitizeFilterValue(searchQuery);
+      query = query.or(`name.ilike.%${sanitized}%,email.ilike.%${sanitized}%,phone.ilike.%${sanitized}%`);
     }
 
     const from = (currentPage - 1) * ITEMS_PER_PAGE;

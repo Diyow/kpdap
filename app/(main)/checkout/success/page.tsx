@@ -20,11 +20,10 @@ declare global {
 function CheckoutSuccessContent() {
   const searchParams = useSearchParams();
   const orderId = searchParams.get("order_id");
-  const tokenUrl = searchParams.get("token");
   const { setPendingOrderId, pendingOrderToken } = useCartStore();
   
-  // Use token from URL if available, otherwise from store
-  const activeToken = tokenUrl || pendingOrderToken;
+  // Use token from store only for security (URL token is leaked)
+  const activeToken = pendingOrderToken;
   
   const [order, setOrder] = useState<any>(null);
   const [loading, setLoading] = useState(true);

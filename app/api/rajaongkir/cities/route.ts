@@ -1,10 +1,20 @@
 import { NextResponse } from 'next/server';
 
-export const runtime = 'edge';
+import { checkRateLimit, getIpAddress } from '@/utils/rate-limit';
 
+export const runtime = 'edge';
 
 export async function GET(request: Request) {
   try {
+    // 1. Rate Limiting Check (e.g., 30 lookups per minute)
+    const ip = getIpAddress(request);
+    const rateLimit = await checkRateLimit(ip, 'rajaongkir_cities', 30, 60);
+    if (!rateLimit.allowed) {
+      return NextResponse.json(
+        { error: `Terlalu banyak permintaan. Silakan coba lagi nanti.` },
+        { status: 429, headers: { 'Retry-After': '60' } }
+      );
+    }
 
     const { searchParams } = new URL(request.url);
     const provinceId = searchParams.get('province');
@@ -37,7 +47,11 @@ export async function GET(request: Request) {
       type: "Kota/Kabupaten"
     }));
 
-    return NextResponse.json(mappedResults);
+    return NextResponse.json(mappedResults, {
+      headers: {
+        'Cache-Control': 'public, max-age=86400, s-maxage=86400',
+      },
+    });
   } catch (error: any) {
     console.error('RajaOngkir City Error:', error);
     return NextResponse.json({ error: error.message }, { status: 500 });

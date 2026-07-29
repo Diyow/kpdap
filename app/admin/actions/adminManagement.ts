@@ -120,8 +120,8 @@ export async function updateMyPassword(formData: FormData) {
 
     const newPassword = formData.get("newPassword") as string;
 
-    if (!newPassword || newPassword.length < 6) {
-      return { error: "Password minimal 6 karakter" };
+    if (!newPassword || newPassword.length < 8) {
+      return { error: "Password minimal 8 karakter" };
     }
 
     // A user can update their own password using the normal client

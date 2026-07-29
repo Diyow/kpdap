@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { createClient } from "@/utils/supabase/client";
+import { sanitizeFilterValue } from "@/utils/sanitize";
 import toast from "react-hot-toast";
 import { Loader2, Search, Filter, Send, MessageCircle, FileText, CheckCircle, Clock, XCircle, ChevronDown, ChevronUp, Copy, Check, ChevronLeft, ChevronRight, Package, Truck, Ban, Save } from "lucide-react";
 import { Skeleton } from "@/app/components/ui/Skeleton";
@@ -162,8 +163,9 @@ export default function OrdersManager() {
     }
     
     if (debouncedSearch) {
-      // Search by customer name OR ID
-      query = query.or(`customer_name.ilike.%${debouncedSearch}%,id.ilike.%${debouncedSearch}%`);
+      // Search by customer name OR ID (sanitize to prevent filter injection)
+      const sanitized = sanitizeFilterValue(debouncedSearch);
+      query = query.or(`customer_name.ilike.%${sanitized}%,id.ilike.%${sanitized}%`);
     }
     
     // Apply pagination

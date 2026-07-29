@@ -42,6 +42,18 @@ const nextConfig: NextConfig = {
             key: "Permissions-Policy",
             value: "camera=(), microphone=(), geolocation=()",
           },
+          {
+            key: "Content-Security-Policy",
+            value: [
+              "default-src 'self'",
+              "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://app.midtrans.com https://app.sandbox.midtrans.com",
+              "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://app.midtrans.com https://app.sandbox.midtrans.com",
+              "font-src 'self' https://fonts.gstatic.com",
+              "img-src 'self' data: blob: https://images.unsplash.com https://qaloryhljydujnolevrm.supabase.co https://app.midtrans.com https://app.sandbox.midtrans.com",
+              "connect-src 'self' https://qaloryhljydujnolevrm.supabase.co https://app.midtrans.com https://app.sandbox.midtrans.com https://api.midtrans.com https://api.sandbox.midtrans.com https://cors-anywhere.midtrans.com",
+              "frame-src 'self' https://app.midtrans.com https://app.sandbox.midtrans.com",
+            ].join("; "),
+          },
         ],
       },
     ];

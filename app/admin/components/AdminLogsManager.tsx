@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { createClient } from "@/utils/supabase/client";
+import { sanitizeFilterValue } from "@/utils/sanitize";
 import { Loader2, Search, ChevronLeft, ChevronRight, Activity, Clock, ShieldAlert, CheckCircle, Package, User, PenTool } from "lucide-react";
 import { Skeleton } from "@/app/components/ui/Skeleton";
 
@@ -42,7 +43,8 @@ export default function AdminLogsManager() {
       .order("created_at", { ascending: false });
 
     if (debouncedSearch) {
-      query = query.or(`admin_email.ilike.%${debouncedSearch}%,description.ilike.%${debouncedSearch}%`);
+      const sanitized = sanitizeFilterValue(debouncedSearch);
+      query = query.or(`admin_email.ilike.%${sanitized}%,description.ilike.%${sanitized}%`);
     }
 
     const from = (currentPage - 1) * ITEMS_PER_PAGE;

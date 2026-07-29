@@ -15,6 +15,8 @@ export const metadata: Metadata = {
   description: "Kopi Terbaik, Dari Hati Petani Bali",
 };
 
+export const runtime = 'edge';
+
 export default function RootLayout({
   children,
 }: Readonly<{

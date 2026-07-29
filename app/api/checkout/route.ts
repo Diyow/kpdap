@@ -1,19 +1,70 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { checkRateLimit, getIpAddress } from '@/utils/rate-limit';
 
 export const runtime = 'edge';
 
 
 export async function POST(request: Request) {
+  let successfullyDeducted = false;
+  let itemsForBatch: any[] = [];
+  let orderId: string | undefined;
+  
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  );
+
   try {
+    // --- Rate Limiting ---
+    const ip = getIpAddress(request);
+    const rateLimit = await checkRateLimit(ip, 'api/checkout', 5, 60);
+    
+    if (!rateLimit.allowed) {
+      return NextResponse.json(
+        { error: 'Terlalu banyak permintaan. Silakan coba lagi nanti.' },
+        { 
+          status: 429,
+          headers: {
+            'X-RateLimit-Limit': '5',
+            'X-RateLimit-Remaining': rateLimit.remaining.toString(),
+            'X-RateLimit-Reset': rateLimit.reset_time || ''
+          }
+        }
+      );
+    }
+    // --- End Rate Limiting ---
 
     const body = await request.json();
     const { items, customer, shipping_details, total_amount, shipping_cost, courier } = body;
 
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!
-    );
+    // --- Input Validation ---
+    if (!Array.isArray(items) || items.length === 0) {
+      return NextResponse.json({ error: 'Keranjang belanja kosong.' }, { status: 400 });
+    }
+
+    const MAX_QUANTITY_PER_ITEM = 100;
+
+    for (const item of items) {
+      if (!item.id || typeof item.id !== 'number') {
+        return NextResponse.json({ error: 'ID produk tidak valid.' }, { status: 400 });
+      }
+      if (!Number.isInteger(item.quantity) || item.quantity < 1 || item.quantity > MAX_QUANTITY_PER_ITEM) {
+        return NextResponse.json(
+          { error: `Jumlah produk harus antara 1 dan ${MAX_QUANTITY_PER_ITEM}.` },
+          { status: 400 }
+        );
+      }
+    }
+
+    if (!customer?.name?.trim() || !customer?.phone?.trim()) {
+      return NextResponse.json({ error: 'Nama dan nomor telepon wajib diisi.' }, { status: 400 });
+    }
+
+    if (!shipping_details?.destination || !shipping_details?.courier || !shipping_details?.weight) {
+      return NextResponse.json({ error: 'Detail pengiriman wajib diisi.' }, { status: 400 });
+    }
+    // --- End Validation ---
 
     // Fetch authoritative product prices from DB
     const itemIds = items.map((item: any) => item.id);
@@ -111,73 +162,39 @@ export async function POST(request: Request) {
 
     const trueTotalAmount = calculatedSubtotal + verifiedShippingCost;
 
-    // 0. Deduct stock for each item (Atomic using RPC)
-    const successfullyDeducted: { id: number, qty: number, variation: string | null }[] = [];
-    
-    try {
-      for (const item of items) {
-        const { data: success, error: rpcError } = await supabase.rpc('deduct_stock_v2', {
-          p_product_id: item.id,
-          p_quantity: item.quantity,
-          p_variation_name: item.variation || null
-        });
-        
-        if (rpcError) throw new Error(rpcError.message);
-        if (!success) {
-          throw new Error(`Stok tidak mencukupi untuk produk: ${item.title}`);
-        }
-        
-        successfullyDeducted.push({ id: item.id, qty: item.quantity, variation: item.variation || null });
-      }
-    } catch (err: any) {
-      // Rollback successfully deducted stocks
-      for (const item of successfullyDeducted) {
-        await supabase.rpc('restore_stock_v2', {
-          p_product_id: item.id,
-          p_quantity: item.qty,
-          p_variation_name: item.variation
-        });
-      }
-      return NextResponse.json({ error: err.message }, { status: 400 });
-    }
-
-    // 1. Generate Completion Token and Insert order into Supabase
-    const completionToken = crypto.randomUUID();
-    const { data: orderData, error: orderError } = await supabase
-      .from('orders')
-      .insert({
-        customer_name: customer.name,
-        customer_email: customer.email,
-        customer_phone: customer.phone,
-        shipping_address: customer.address + (customer.city ? `, ${customer.city}, ${customer.province}` : ''),
-        notes: customer.notes,
-        total_amount: trueTotalAmount, // Secure server calculated amount
-        shipping_cost: verifiedShippingCost,
-        courier: courier || null,
-        status: 'pending',
-        completion_token: completionToken
-      })
-      .select('id')
-      .single();
-
-    if (orderError) throw new Error(orderError.message);
-
-    const orderId = orderData.id;
-
-    // 2. Insert order items
-    const orderItemsToInsert = verifiedItems.map((item: any) => ({
-      order_id: orderId,
-      product_id: item.id,
-      quantity: item.quantity,
-      price_at_time: item.price,
-      variation_name: item.variation || null
+    // 0. Atomic Stock Deduction and Order Creation (RPC)
+    itemsForBatch = verifiedItems.map((item: any) => ({
+      id: item.id,
+      qty: item.quantity,
+      price: item.price,
+      variation: item.variation || null
     }));
-
-    const { error: itemsError } = await supabase
-      .from('order_items')
-      .insert(orderItemsToInsert);
-
-    if (itemsError) throw new Error(itemsError.message);
+    
+    const completionToken = crypto.randomUUID();
+    
+    const { data: batchResult, error: rpcError } = await supabase.rpc('create_order_with_deduction', {
+      p_customer_name: customer.name,
+      p_customer_email: customer.email,
+      p_customer_phone: customer.phone,
+      p_shipping_address: customer.address + (customer.city ? `, ${customer.city}, ${customer.province}` : ''),
+      p_notes: customer.notes,
+      p_total_amount: trueTotalAmount,
+      p_shipping_cost: verifiedShippingCost,
+      p_courier: courier || null,
+      p_completion_token: completionToken,
+      p_items: itemsForBatch
+    });
+    
+    if (rpcError) throw new Error(rpcError.message);
+    
+    if (!batchResult.success) {
+      // Find which item failed
+      const failedItem = items.find((i: any) => i.id == batchResult.failed_item_id);
+      throw new Error(`Stok tidak mencukupi untuk produk: ${failedItem?.title || 'Unknown'}`);
+    }
+    
+    successfullyDeducted = true;
+    orderId = batchResult.order_id;
 
     // 3. Initialize Midtrans Snap API via native fetch (Edge Compatible)
     const isProduction = process.env.NEXT_PUBLIC_MIDTRANS_IS_PRODUCTION === 'true';
@@ -242,6 +259,21 @@ export async function POST(request: Request) {
 
   } catch (error: any) {
     console.error('Checkout error:', error);
+    
+    // Rollback stock and cancel order if deduction succeeded but Midtrans token generation failed
+    if (successfullyDeducted && itemsForBatch.length > 0) {
+      try {
+        await supabase.rpc('restore_stock_batch_v2', { p_items: itemsForBatch });
+        // Need to update order status to cancelled if it was created
+        if (typeof orderId !== 'undefined') {
+          await supabase.from('orders').update({ status: 'cancelled' }).eq('id', orderId);
+        }
+        console.log('Successfully rolled back stock and cancelled order after failed checkout');
+      } catch (rollbackError) {
+        console.error('CRITICAL: Failed to rollback stock:', rollbackError);
+      }
+    }
+    
     return NextResponse.json(
       { error: error.message || 'Internal Server Error' },
       { status: 500 }

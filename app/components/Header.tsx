@@ -8,25 +8,24 @@ import { createClient } from "@/utils/supabase/client";
 import { useCartStore } from "@/store/useCartStore";
 import CartDrawer from "./CartDrawer";
 
-export default function Header() {
+interface HeaderProps {
+  initialContact?: { phone: string; email: string };
+}
+
+export default function Header({ initialContact }: HeaderProps) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [expandedMobileMenu, setExpandedMobileMenu] = useState<string | null>(null);
 
-  const [contact, setContact] = useState({ phone: defaultContact.phone, email: defaultContact.email });
+  const [contact, setContact] = useState({ 
+    phone: initialContact?.phone || defaultContact.phone, 
+    email: initialContact?.email || defaultContact.email 
+  });
   const [mounted, setMounted] = useState(false);
   
   const { items, setIsCartOpen, pendingOrderId } = useCartStore();
 
   useEffect(() => {
     setMounted(true);
-    const fetchContact = async () => {
-      const supabase = createClient();
-      const { data } = await supabase.from("contact_info").select("*").eq("id", 1).single();
-      if (data) {
-        setContact({ phone: data.phone, email: data.email });
-      }
-    };
-    fetchContact();
   }, []);
 
   const toggleMobileSubmenu = (label: string) => {
@@ -38,44 +37,55 @@ export default function Header() {
   return (
     <header className="w-full sticky top-0 z-50 flex flex-col">
       {/* Top Bar */}
-      <div className="bg-[#5a4634] text-white text-xs py-2 px-4 md:px-8 flex flex-col sm:flex-row justify-between items-center gap-2">
-        <div className="flex flex-wrap justify-center gap-4">
-          <a href={`tel:${contact.phone}`} className="flex items-center gap-1 hover:underline">
-            <Phone size={12} />
+      <div className="bg-[#5a4634] text-[#d0c9c3] py-1.5 px-3 md:px-8 flex flex-row flex-wrap justify-center sm:justify-between items-center gap-x-3 gap-y-1 text-[9px] sm:text-xs">
+        <div className="flex items-center gap-3 sm:gap-4">
+          <a href={`tel:${contact.phone}`} className="flex items-center gap-1 hover:text-white transition-colors">
+            <Phone size={10} className="sm:w-3 sm:h-3" />
             <span>{contact.phone}</span>
           </a>
-          <a href={`mailto:${contact.email}`} className="flex items-center gap-1 hover:underline">
-            <Mail size={12} />
-            <span className="hidden sm:inline">{contact.email}</span>
-            <span className="sm:hidden">Email Us</span>
+          <a href={`mailto:${contact.email}`} className="flex items-center gap-1 hover:text-white transition-colors">
+            <Mail size={10} className="sm:w-3 sm:h-3" />
+            <span>{contact.email}</span>
           </a>
         </div>
-        <div className="flex items-center gap-4">
-          <Link href="/admin" className="flex items-center gap-1 hover:underline">
-            <User size={12} />
-            <span>Portal Anggota</span>
-          </Link>
-        </div>
+        <Link href="/admin" className="flex items-center gap-1 hover:text-white transition-colors font-medium">
+          <User size={10} className="sm:w-3 sm:h-3" />
+          <span>Portal Anggota</span>
+        </Link>
       </div>
 
       {/* Main Navigation */}
       <nav className="bg-white/95 backdrop-blur-md shadow-sm py-4 px-4 md:px-8">
         <div className="flex justify-between items-center">
-          <Link href="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
-            <div className="w-10 h-10 shrink-0 relative">
+          <div className="flex items-center gap-4">
+            <Link href="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
+              <div className="w-10 h-10 shrink-0 relative">
+                <Image
+                  src="/logo.webp"
+                  alt="KPDAP Logo"
+                  fill
+                  sizes="40px"
+                  className="object-contain"
+                />
+              </div>
+              <div>
+                <h1 className="font-bold text-sm text-brand-text leading-tight">KPDAP</h1>
+                <p className="text-[10px] text-green-700 uppercase tracking-wider leading-tight hidden sm:block">Koperasi Produsen Dharma Asastha Partiwi</p>
+              </div>
+            </Link>
+            
+            <div className="w-px h-8 bg-gray-200"></div>
+            
+            <div className="w-10 h-10 shrink-0 relative" title="ITB STIKOM Bali">
               <Image
-                src="/logo.webp"
-                alt="KPDAP Logo"
+                src="/stikom.png"
+                alt="STIKOM Logo"
                 fill
                 sizes="40px"
                 className="object-contain"
               />
             </div>
-            <div>
-              <h1 className="font-bold text-sm text-brand-text leading-tight">KPDAP</h1>
-              <p className="text-[10px] text-green-700 uppercase tracking-wider leading-tight hidden sm:block">Koperasi Produsen Dharma Asastha Partiwi</p>
-            </div>
-          </Link>
+          </div>
 
           <ul className="hidden lg:flex gap-6 text-sm font-medium text-gray-700">
             {navLinks.map((link) => (
@@ -153,7 +163,7 @@ export default function Header() {
 
       {/* Mobile Menu */}
         {isMobileMenuOpen && (
-          <div className="lg:hidden absolute top-full left-0 w-full bg-white shadow-lg border-t border-gray-100 py-4 px-4 flex flex-col gap-4">
+          <div className="lg:hidden absolute top-full left-0 w-full bg-white/95 backdrop-blur-md shadow-lg border-t border-gray-100 py-4 px-4 flex flex-col gap-4">
             <ul className="flex flex-col gap-4 text-sm font-medium text-gray-700">
               {navLinks.map((link) => (
                 <li key={link.label} className="flex flex-col">
@@ -198,7 +208,7 @@ export default function Header() {
               href={whatsappUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="bg-[#25D366] hover:bg-[#128C7E] text-white px-4 py-2 rounded-md text-sm font-medium flex items-center justify-center gap-2 transition-colors w-full"
+              className="bg-[#25D366] hover:bg-[#128C7E] text-white px-4 py-2 rounded-md text-sm font-medium flex items-center justify-center gap-2 transition-colors w-full mt-2"
             >
               <MessageCircle size={16} />
               Chat

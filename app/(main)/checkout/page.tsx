@@ -177,11 +177,11 @@ export default function CheckoutPage() {
       window.snap.pay(data.token, {
         onSuccess: function (result: any) {
           clearCart();
-          router.push('/checkout/success?order_id=' + data.order_id + '&token=' + data.completion_token);
+          router.push('/checkout/success?order_id=' + data.order_id);
         },
         onPending: function (result: any) {
           clearCart();
-          router.push('/checkout/success?order_id=' + data.order_id + '&token=' + data.completion_token);
+          router.push('/checkout/success?order_id=' + data.order_id);
         },
         onError: function (result: any) {
           toast.error("Pembayaran gagal!");
