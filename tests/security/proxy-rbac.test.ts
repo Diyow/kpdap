@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { proxy } from '../../proxy';
+import { middleware } from '../../middleware';
 import { NextRequest } from 'next/server';
 
 // We need to mock next/server
@@ -54,7 +54,7 @@ describe('Proxy Middleware RBAC', () => {
 
   it('allows access to non-admin routes without auth', async () => {
     const req = createMockRequest('/products');
-    const res: any = await proxy(req);
+    const res: any = await middleware(req);
     // Should return the NextResponse.next() object, not a redirect
     expect(res.status).toBeUndefined(); 
   });
@@ -62,7 +62,7 @@ describe('Proxy Middleware RBAC', () => {
   it('redirects unauthenticated users from /admin to /admin/login', async () => {
     const req = createMockRequest('/admin/dashboard');
     mockUser = null; // Unauthenticated
-    const res: any = await proxy(req);
+    const res: any = await middleware(req);
     
     expect(res.status).toBe(307);
     expect(res.url).toContain('/admin/login');
@@ -71,7 +71,7 @@ describe('Proxy Middleware RBAC', () => {
   it('redirects authenticated non-admin users from /admin to /', async () => {
     const req = createMockRequest('/admin/dashboard');
     mockUser = { id: 'user-123', app_metadata: {} };
-    const res: any = await proxy(req);
+    const res: any = await middleware(req);
     
     expect(res.status).toBe(307);
     expect(res.url.endsWith('/')).toBe(true);
@@ -80,7 +80,7 @@ describe('Proxy Middleware RBAC', () => {
   it('allows authenticated admins to access /admin', async () => {
     const req = createMockRequest('/admin/dashboard');
     mockUser = { id: 'admin-123', app_metadata: { role: 'admin' } };
-    const res: any = await proxy(req);
+    const res: any = await middleware(req);
     
     // Should pass through (no redirect)
     expect(res.status).toBeUndefined();
@@ -88,7 +88,7 @@ describe('Proxy Middleware RBAC', () => {
 
   it('allows access to /admin/login without auth', async () => {
     const req = createMockRequest('/admin/login');
-    const res: any = await proxy(req);
+    const res: any = await middleware(req);
     expect(res.status).toBeUndefined();
   });
 });
