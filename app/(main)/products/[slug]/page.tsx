@@ -1,14 +1,11 @@
 import React from "react";
 import Link from "next/link";
-import { createClient } from "@/utils/supabase/server";
-import { cookies } from "next/headers";
+import { createClient } from "@supabase/supabase-js";
 import ProductGallery from "@/app/components/ProductGallery";
 import ProductOptions from "@/app/components/ProductOptions";
 import BackLink from "@/app/components/BackLink";
 import EmptyState from "@/app/components/EmptyState";
 import { PackageX } from "lucide-react";
-
-export const runtime = 'edge';
 
 export default async function ProductDetailPage({
   params,
@@ -18,8 +15,10 @@ export default async function ProductDetailPage({
   const { slug } = await params;
   const decodedSlug = decodeURIComponent(slug);
   
-  const cookieStore = await cookies();
-  const supabase = createClient(cookieStore);
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!
+  );
 
   // Try fetching from supabase
   const { data: product, error } = await supabase

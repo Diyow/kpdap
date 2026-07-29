@@ -3,16 +3,17 @@ import { footerLinks } from "../data";
 import { MapPin, Phone, Mail } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
-import { createClient } from "@/utils/supabase/server";
-import { cookies } from "next/headers";
+import { createClient } from '@supabase/supabase-js';
 import { contactInfo as fallbackContact } from "../data";
 
 export default async function Footer() {
   let contactInfo = fallbackContact;
   
   try {
-    const cookieStore = await cookies();
-    const supabase = createClient(cookieStore);
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!
+    );
     const { data: contactData } = await supabase.from("contact_info").select("*").eq("id", 1).single();
     
     if (contactData) {
@@ -21,6 +22,7 @@ export default async function Footer() {
   } catch (err) {
     console.error("Failed to fetch contact info for footer:", err);
   }
+
   return (
     <footer className="bg-brand-brown text-[#d0c9c3] pt-16 pb-8 px-4 md:px-8 border-t-[8px] border-brand-green">
       <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-10 mb-12">

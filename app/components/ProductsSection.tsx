@@ -1,11 +1,12 @@
 import Link from "next/link";
-import { createClient } from "@/utils/supabase/server";
-import { cookies } from "next/headers";
+import { createClient } from "@supabase/supabase-js";
 import ProductCard from "./ProductCard";
 
 export default async function ProductsSection() {
-  const cookieStore = await cookies();
-  const supabase = createClient(cookieStore);
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!
+  );
   
   const { data: products } = await supabase.from("products").select("*").eq("is_active", true).order("id");
 

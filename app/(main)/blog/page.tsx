@@ -1,13 +1,16 @@
-import { createClient } from "@/utils/supabase/server";
-import { cookies } from "next/headers";
+import { createClient } from "@supabase/supabase-js";
 import Link from "next/link";
 import Image from "next/image";
 import { ArrowRight, Calendar, User } from "lucide-react";
 import BusinessUnitsSection from "@/app/components/BusinessUnitsSection";
 
+export const revalidate = 60; // Revalidate every minute
+
 export default async function BlogPage() {
-  const cookieStore = await cookies();
-  const supabase = createClient(cookieStore);
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!
+  );
 
   const { data: articles } = await supabase
     .from("articles")

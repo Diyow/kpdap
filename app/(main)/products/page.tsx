@@ -1,7 +1,7 @@
 import React from "react";
 import Image from "next/image";
-import { createClient } from "@/utils/supabase/server";
-import { cookies } from "next/headers";
+import { createClient } from "@supabase/supabase-js";
+import { Suspense } from "react";
 import ProductsListClient from "./ProductsListClient";
 import type { Metadata } from 'next';
 
@@ -10,9 +10,13 @@ export const metadata: Metadata = {
   description: 'Jelajahi berbagai pilihan kopi premium, paket wisata, dan produk pertanian organik kami yang ditanam dengan penuh cinta oleh para petani Bali.'
 };
 
+export const revalidate = 60; // Revalidate every minute
+
 export default async function ProductsPage() {
-  const cookieStore = await cookies();
-  const supabase = createClient(cookieStore);
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!
+  );
 
   // Fetch categories and products server-side
   const { data: categories } = await supabase.from("categories").select("*").order("name");
@@ -45,10 +49,12 @@ export default async function ProductsPage() {
         </section>
 
         {/* Products Grid - Using Client Component for interactions */}
-        <ProductsListClient 
-          initialProducts={products || []} 
-          initialCategories={categories || []} 
-        />
+        <Suspense fallback={<div className="py-20 text-center"><div className="w-8 h-8 mx-auto border-4 border-brand-green/20 border-t-brand-green rounded-full animate-spin"></div></div>}>
+          <ProductsListClient 
+            initialProducts={products || []} 
+            initialCategories={categories || []} 
+          />
+        </Suspense>
       </main>
           </>
   );

@@ -5,6 +5,8 @@ import AboutSection from "@/app/components/AboutSection";
 import AdvantagesSection from "@/app/components/AdvantagesSection";
 import ProductsSection from "@/app/components/ProductsSection";
 
+export const revalidate = 60; // Revalidate every minute
+
 export default function Home() {
   return (
     <>
