@@ -37,19 +37,21 @@ export default function Header({ initialContact }: HeaderProps) {
   return (
     <header className="w-full sticky top-0 z-50 flex flex-col">
       {/* Top Bar */}
-      <div className="bg-[#5a4634] text-[#d0c9c3] py-1.5 px-3 md:px-8 flex flex-row flex-wrap justify-center sm:justify-between items-center gap-x-3 gap-y-1 text-[9px] sm:text-xs">
+      <div className="bg-[#5a4634] text-white py-1.5 px-3 md:px-8 flex flex-row justify-between items-center gap-2 text-[11px] sm:text-xs">
         <div className="flex items-center gap-3 sm:gap-4">
-          <a href={`tel:${contact.phone}`} className="flex items-center gap-1 hover:text-white transition-colors">
-            <Phone size={10} className="sm:w-3 sm:h-3" />
-            <span>{contact.phone}</span>
+          <a href={`tel:${contact.phone}`} className="flex items-center gap-1.5 hover:underline">
+            <Phone size={12} />
+            <span className="hidden md:inline">{contact.phone}</span>
+            <span className="md:hidden">Hubungi Kami</span>
           </a>
-          <a href={`mailto:${contact.email}`} className="flex items-center gap-1 hover:text-white transition-colors">
-            <Mail size={10} className="sm:w-3 sm:h-3" />
-            <span>{contact.email}</span>
+          <a href={`mailto:${contact.email}`} className="flex items-center gap-1.5 hover:underline">
+            <Mail size={12} />
+            <span className="hidden md:inline">{contact.email}</span>
+            <span className="md:hidden">Email Kami</span>
           </a>
         </div>
-        <Link href="/admin" className="flex items-center gap-1 hover:text-white transition-colors font-medium">
-          <User size={10} className="sm:w-3 sm:h-3" />
+        <Link href="/admin" className="flex items-center gap-1.5 hover:underline font-medium">
+          <User size={12} />
           <span>Portal Anggota</span>
         </Link>
       </div>

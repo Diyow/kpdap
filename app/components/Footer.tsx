@@ -8,14 +8,14 @@ import { contactInfo as fallbackContact } from "../data";
 
 export default async function Footer() {
   let contactInfo = fallbackContact;
-  
+
   try {
     const supabase = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!
     );
     const { data: contactData } = await supabase.from("contact_info").select("*").eq("id", 1).single();
-    
+
     if (contactData) {
       contactInfo = contactData;
     }
@@ -25,9 +25,9 @@ export default async function Footer() {
 
   return (
     <footer className="bg-brand-brown text-[#d0c9c3] pt-16 pb-8 px-4 md:px-8 border-t-[8px] border-brand-green">
-      <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-10 mb-12">
+      <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-12 gap-10 mb-12">
         {/* Brand Info */}
-        <div className="col-span-1 md:col-span-1">
+        <div className="md:col-span-3 lg:col-span-3">
           <div className="flex items-center gap-2 mb-6">
             <div className="w-12 h-12 relative bg-white rounded-full p-1 flex items-center justify-center shrink-0">
               <Image
@@ -47,7 +47,7 @@ export default async function Footer() {
         </div>
 
         {/* Quick Links */}
-        <div>
+        <div className="md:col-span-2 lg:col-span-2">
           <h3 className="text-white font-bold mb-6">Tautan Cepat</h3>
           <ul className="space-y-3 text-sm">
             {footerLinks.quickLinks.map((link) => (
@@ -61,42 +61,53 @@ export default async function Footer() {
         </div>
 
         {/* Contact */}
-        <div>
+        <div className="md:col-span-4 lg:col-span-4">
           <h3 className="text-white font-bold mb-6">Hubungi Kami</h3>
           <ul className="space-y-4 text-sm">
             <li className="flex items-start gap-3">
               <MapPin size={18} className="text-brand-green shrink-0 mt-0.5" />
               <span>Desa Pajahan, Kec. Pupuan, Kabupaten Tabanan, Bali 82163</span>
             </li>
-            <li className="flex items-center gap-3">
-              <Phone size={18} className="text-brand-green shrink-0" />
+            <li className="flex items-start gap-3">
+              <Phone size={18} className="text-brand-green shrink-0 mt-0.5" />
               <span>{contactInfo.phone}</span>
             </li>
-            <li className="flex items-center gap-3">
-              <Mail size={18} className="text-brand-green shrink-0" />
+            <li className="flex items-start gap-3">
+              <Mail size={18} className="text-brand-green shrink-0 mt-0.5" />
               <span>{contactInfo.email}</span>
             </li>
           </ul>
         </div>
 
         {/* Supported By */}
-        <div>
+        <div className="md:col-span-3 lg:col-span-3">
           <h3 className="text-white font-bold mb-6">Didukung Oleh</h3>
-          <div className="flex flex-col gap-2.5 mt-1">
-            <div className="bg-white p-3 rounded-xl flex items-center justify-center shadow-sm w-fit">
-              <div className="relative w-32 h-14">
-                <Image
-                  src="/stikom.png"
-                  alt="ITB STIKOM Bali"
-                  fill
-                  className="object-contain"
-                  sizes="128px"
-                />
+          <div className="flex flex-wrap gap-8 mt-1">
+            {[
+              {
+                name: "Institut Teknologi dan Bisnis STIKOM Bali",
+                image: "/stikom.png",
+              },
+              // Tambahkan logo pendukung lainnya di sini
+              // { name: "Nama Pendukung", image: "/logo-lain.png" }
+            ].map((supporter, idx) => (
+              <div key={idx} className="flex flex-col items-center gap-3">
+                <div className="bg-white p-5 rounded-2xl flex items-center justify-center shadow-sm w-fit">
+                  <div className="relative w-56 h-24">
+                    <Image
+                      src={supporter.image}
+                      alt={supporter.name}
+                      fill
+                      className="object-contain"
+                      sizes="224px"
+                    />
+                  </div>
+                </div>
+                <span className="text-[#d0c9c3] text-sm text-center font-medium leading-relaxed max-w-[260px]">
+                  {supporter.name}
+                </span>
               </div>
-            </div>
-            <span className="text-[#d0c9c3] text-xs font-medium leading-relaxed max-w-[160px]">
-              Institut Teknologi dan Bisnis STIKOM Bali
-            </span>
+            ))}
           </div>
         </div>
       </div>
