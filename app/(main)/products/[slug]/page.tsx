@@ -7,6 +7,8 @@ import BackLink from "@/app/components/BackLink";
 import EmptyState from "@/app/components/EmptyState";
 import { PackageX } from "lucide-react";
 
+export const runtime = 'edge';
+
 export default async function ProductDetailPage({
   params,
 }: {
