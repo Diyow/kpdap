@@ -30,6 +30,7 @@ Thumbs.db
 *.pem
 .eslintcache
 supabase_setup.sql
+/backups/
 
 # debug
 npm-debug.log*

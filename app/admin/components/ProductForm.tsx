@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { createClient } from "@/utils/supabase/client";
-import { Loader2, Trash2, Plus, UploadCloud } from "lucide-react";
+import { Loader2, Trash2, Plus, UploadCloud, Info } from "lucide-react";
 import toast from "react-hot-toast";
 import Image from "next/image";
 import { Product } from "./ProductsManager";
@@ -133,18 +133,38 @@ export default function ProductForm({ initialData, onSave, onCancel }: ProductFo
   const handleFilesChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
     if (files.length > 0) {
-      const previews = files.map(file => ({
-        file,
-        url: URL.createObjectURL(file),
-        name: file.name,
-        size: file.size
-      }));
-      setNewPreviews(prev => {
-        const next = [...prev, ...previews];
-        if (!selectedThumbnail) setSelectedThumbnail(next[0].url);
-        return next;
-      });
+      const allowedMimeTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+      const maxSizeBytes = 5 * 1024 * 1024; // 5MB
+
+      const validFiles: File[] = [];
+      for (const file of files) {
+        if (!allowedMimeTypes.includes(file.type)) {
+          toast.error(`File "${file.name}" ditolak: Format harus berupa JPG, PNG, WebP, atau GIF.`);
+          continue;
+        }
+        if (file.size > maxSizeBytes) {
+          toast.error(`File "${file.name}" ditolak: Ukuran maksimal 5MB (ukuran file: ${formatSize(file.size)}).`);
+          continue;
+        }
+        validFiles.push(file);
+      }
+
+      if (validFiles.length > 0) {
+        const previews = validFiles.map(file => ({
+          file,
+          url: URL.createObjectURL(file),
+          name: file.name,
+          size: file.size
+        }));
+        setNewPreviews(prev => {
+          const next = [...prev, ...previews];
+          if (!selectedThumbnail) setSelectedThumbnail(next[0].url);
+          return next;
+        });
+      }
     }
+    // Reset file input value so selecting the same file again triggers change
+    if (e.target) e.target.value = '';
   };
 
   const removeNewFile = (index: number) => {
@@ -570,10 +590,19 @@ export default function ProductForm({ initialData, onSave, onCancel }: ProductFo
         <div className="flex flex-col gap-4">
           <div>
             <label className="block text-sm font-medium text-brand-text mb-2">Gambar Produk <span className="text-red-500">*</span></label>
+            
+            <div className="mb-3 p-3 bg-amber-50/70 border border-amber-200/80 rounded-xl text-xs text-amber-900 flex items-start gap-2.5 shadow-sm">
+              <Info size={16} className="text-amber-600 shrink-0 mt-0.5" />
+              <div>
+                <span className="font-semibold">Aturan Unggah Gambar:</span>
+                <span className="ml-1">Format yang diizinkan adalah <strong>JPG, PNG, WebP, GIF</strong> dengan ukuran maksimal <strong>5MB</strong> per file.</span>
+              </div>
+            </div>
+
             <div className="relative border-2 border-dashed border-gray-300 rounded-xl p-8 text-center hover:bg-gray-50 transition-colors group">
               <input 
                 type="file" 
-                accept="image/*" 
+                accept="image/jpeg,image/png,image/webp,image/gif" 
                 multiple 
                 onChange={handleFilesChange} 
                 className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" 
@@ -581,7 +610,7 @@ export default function ProductForm({ initialData, onSave, onCancel }: ProductFo
               <div className="flex flex-col items-center gap-2 text-gray-500 group-hover:text-brand-green transition-colors">
                 <UploadCloud size={32} />
                 <div className="font-medium">Klik atau Drag & Drop gambar ke sini</div>
-                <div className="text-xs text-gray-400">Mendukung JPG, PNG (Max 5MB)</div>
+                <div className="text-xs text-gray-400">JPG, PNG, WebP, GIF (Maks. 5MB)</div>
               </div>
             </div>
             <p className="text-xs text-gray-500 mt-3 flex items-center gap-1">

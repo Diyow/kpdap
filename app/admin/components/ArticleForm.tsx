@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import { createClient } from "@/utils/supabase/client";
-import { X, Loader2, Upload, Trash2, Image as ImageIcon, Globe, Lock, Eye, Code, HelpCircle } from "lucide-react";
+import { X, Loader2, Upload, Trash2, Image as ImageIcon, Globe, Lock, Eye, Code, HelpCircle, Info } from "lucide-react";
 import toast from "react-hot-toast";
 import ReactMarkdown from "react-markdown";
 import type { Article } from "./ArticlesManager";
@@ -41,12 +41,15 @@ export default function ArticleForm({ article, onClose, onSuccess }: ArticleForm
       if (!e.target.files || e.target.files.length === 0) return;
 
       const file = e.target.files[0];
-      if (!file.type.startsWith('image/')) {
-        toast.error('File harus berupa gambar');
+      const allowedMimeTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+      const maxSizeBytes = 5 * 1024 * 1024; // 5MB
+
+      if (!allowedMimeTypes.includes(file.type)) {
+        toast.error('File harus berupa gambar (JPG, PNG, WebP, atau GIF)');
         return;
       }
-      if (file.size > 2 * 1024 * 1024) {
-        toast.error('Ukuran gambar maksimal 2MB');
+      if (file.size > maxSizeBytes) {
+        toast.error('Ukuran gambar maksimal 5MB');
         return;
       }
 
@@ -302,18 +305,23 @@ export default function ArticleForm({ article, onClose, onSuccess }: ArticleForm
                           </div>
                           <div className="text-center">
                             <span className="text-sm font-medium text-brand-green block">Pilih Gambar</span>
-                            <span className="text-xs text-gray-400">PNG, JPG max 2MB</span>
+                            <span className="text-xs text-gray-400">JPG, PNG, WebP, GIF (Maks. 5MB)</span>
                           </div>
                         </>
                       )}
                     </div>
                   )}
 
+                  <div className="mt-2 text-xs text-amber-700 bg-amber-50 border border-amber-200/80 rounded-lg p-2.5 flex items-start gap-2">
+                    <Info size={15} className="shrink-0 text-amber-600 mt-0.5" />
+                    <span><strong>Aturan:</strong> Maksimal 5MB. Format: JPG, PNG, WebP, GIF.</span>
+                  </div>
+
                   <input
                     type="file"
                     ref={fileInputRef}
                     onChange={handleImageUpload}
-                    accept="image/*"
+                    accept="image/jpeg,image/png,image/webp,image/gif"
                     className="hidden"
                   />
                 </div>
