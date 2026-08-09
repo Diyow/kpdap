@@ -3,7 +3,8 @@
 import { useEffect, useState, useCallback } from "react";
 import { createClient } from "@/utils/supabase/client";
 import { sanitizeFilterValue } from "@/utils/sanitize";
-import { Search, ChevronLeft, ChevronRight, UserCircle, Phone, Mail, Download } from "lucide-react";
+import { Search, ChevronLeft, ChevronRight, UserCircle, Phone, Mail, Download, Users } from "lucide-react";
+import { Tooltip } from "@/app/components/ui/Tooltip";
 import { Skeleton } from "@/app/components/ui/Skeleton";
 import toast from "react-hot-toast";
 
@@ -166,10 +167,15 @@ export default function CustomersManager() {
 
   return (
     <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
-        <div>
-          <h2 className="text-2xl font-bold text-brand-text mb-1">Pelanggan</h2>
-          <p className="text-gray-500 text-sm">Lihat daftar pelanggan yang pernah berbelanja</p>
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8 border-b border-gray-100 pb-6">
+        <div className="flex items-center gap-4">
+          <div className="w-12 h-12 bg-brand-lightbg rounded-xl flex items-center justify-center text-brand-green shrink-0 shadow-sm border border-brand-green/10">
+            <Users size={24} />
+          </div>
+          <div>
+            <h2 className="text-2xl font-bold text-brand-text mb-1">Pelanggan</h2>
+            <p className="text-gray-500 text-sm">Lihat daftar pelanggan yang pernah berbelanja</p>
+          </div>
         </div>
         
         <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
@@ -260,20 +266,24 @@ export default function CustomersManager() {
             Menampilkan {(currentPage - 1) * ITEMS_PER_PAGE + 1} - {Math.min(currentPage * ITEMS_PER_PAGE, totalCount)} dari {totalCount} pelanggan
           </p>
           <div className="flex gap-2">
-            <button 
-              onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-              disabled={currentPage === 1}
-              className="p-2 border border-gray-200 rounded-lg disabled:opacity-50 hover:bg-gray-50 transition-colors"
-            >
-              <ChevronLeft size={18} />
-            </button>
-            <button 
-              onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-              disabled={currentPage === totalPages}
-              className="p-2 border border-gray-200 rounded-lg disabled:opacity-50 hover:bg-gray-50 transition-colors"
-            >
-              <ChevronRight size={18} />
-            </button>
+            <Tooltip content="Halaman Sebelumnya">
+              <button 
+                onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                disabled={currentPage === 1}
+                className="p-2 border border-gray-200 rounded-lg disabled:opacity-50 hover:bg-gray-50 transition-colors"
+              >
+                <ChevronLeft size={18} />
+              </button>
+            </Tooltip>
+            <Tooltip content="Halaman Selanjutnya">
+              <button 
+                onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                disabled={currentPage === totalPages}
+                className="p-2 border border-gray-200 rounded-lg disabled:opacity-50 hover:bg-gray-50 transition-colors"
+              >
+                <ChevronRight size={18} />
+              </button>
+            </Tooltip>
           </div>
         </div>
       )}

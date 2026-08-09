@@ -3,7 +3,10 @@
 import { useState, useEffect, useCallback } from "react";
 import { createClient } from "@/utils/supabase/client";
 import { sanitizeFilterValue } from "@/utils/sanitize";
-import { Search, ChevronLeft, ChevronRight, Plus, FileText, Trash2, Edit, Globe, Lock, Loader2, ExternalLink, AlertCircle } from "lucide-react";
+import { Search, ChevronLeft, ChevronRight, Plus, FileText, Trash2, Edit, Globe, Lock, Loader2, ExternalLink, AlertCircle, Newspaper } from "lucide-react";
+import Image from "next/image";
+import Link from "next/link";
+import { Tooltip } from "@/app/components/ui/Tooltip";
 import toast from "react-hot-toast";
 import ArticleForm from "./ArticleForm";
 import { Skeleton } from "@/app/components/ui/Skeleton";
@@ -155,13 +158,28 @@ export default function ArticlesManager() {
     );
   }
 
+  if (isFormOpen) {
+    return (
+      <ArticleForm
+        article={selectedArticle}
+        onClose={() => setIsFormOpen(false)}
+        onSuccess={handleFormSuccess}
+      />
+    );
+  }
+
   return (
     <>
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
-          <div>
-            <h2 className="text-2xl font-bold text-brand-text mb-1">Artikel & Berita</h2>
-            <p className="text-gray-500 text-sm">Kelola konten blog, berita, dan artikel website</p>
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8 border-b border-gray-100 pb-6">
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 bg-brand-lightbg rounded-xl flex items-center justify-center text-brand-green shrink-0 shadow-sm border border-brand-green/10">
+              <Newspaper size={24} />
+            </div>
+            <div>
+              <h2 className="text-2xl font-bold text-brand-text mb-1">Artikel & Berita</h2>
+              <p className="text-gray-500 text-sm">Kelola konten blog, berita, dan artikel website</p>
+            </div>
           </div>
 
           <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
@@ -233,29 +251,32 @@ export default function ArticlesManager() {
                   </td>
                   <td className="px-5 py-4 text-right">
                     <div className="flex items-center justify-end gap-2">
-                      <a
-                        href={`/blog/${article.slug}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                        title="Lihat Artikel"
-                      >
-                        <ExternalLink size={18} />
-                      </a>
-                      <button
-                        onClick={() => handleEdit(article)}
-                        className="p-2 text-gray-400 hover:text-brand-green hover:bg-brand-green/10 rounded-lg transition-colors"
-                        title="Edit Artikel"
-                      >
-                        <Edit size={18} />
-                      </button>
-                      <button
-                        onClick={() => confirmDelete(article.id, article.title, article.cover_image_url)}
-                        className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                        title="Hapus Artikel"
-                      >
-                        <Trash2 size={18} />
-                      </button>
+                      <Tooltip content="Lihat Artikel">
+                        <a
+                          href={`/blog/${article.slug}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                        >
+                          <ExternalLink size={18} />
+                        </a>
+                      </Tooltip>
+                      <Tooltip content="Edit Artikel">
+                        <button
+                          onClick={() => handleEdit(article)}
+                          className="p-2 text-gray-400 hover:text-brand-green hover:bg-brand-green/10 rounded-lg transition-colors"
+                        >
+                          <Edit size={18} />
+                        </button>
+                      </Tooltip>
+                      <Tooltip content="Hapus Artikel">
+                        <button
+                          onClick={() => confirmDelete(article.id, article.title, article.cover_image_url)}
+                          className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                        >
+                          <Trash2 size={18} />
+                        </button>
+                      </Tooltip>
                     </div>
                   </td>
                 </tr>
@@ -281,20 +302,24 @@ export default function ArticlesManager() {
               Menampilkan {(currentPage - 1) * ITEMS_PER_PAGE + 1} - {Math.min(currentPage * ITEMS_PER_PAGE, totalCount)} dari {totalCount} artikel
             </p>
             <div className="flex gap-2">
-              <button
-                onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-                disabled={currentPage === 1}
-                className="p-2 border border-gray-200 rounded-lg disabled:opacity-50 hover:bg-gray-50 transition-colors"
-              >
-                <ChevronLeft size={18} />
-              </button>
-              <button
-                onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-                disabled={currentPage === totalPages}
-                className="p-2 border border-gray-200 rounded-lg disabled:opacity-50 hover:bg-gray-50 transition-colors"
-              >
-                <ChevronRight size={18} />
-              </button>
+              <Tooltip content="Halaman Sebelumnya">
+                <button
+                  onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                  disabled={currentPage === 1}
+                  className="p-2 border border-gray-200 rounded-lg disabled:opacity-50 hover:bg-gray-50 transition-colors"
+                >
+                  <ChevronLeft size={18} />
+                </button>
+              </Tooltip>
+              <Tooltip content="Halaman Selanjutnya">
+                <button
+                  onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                  disabled={currentPage === totalPages}
+                  className="p-2 border border-gray-200 rounded-lg disabled:opacity-50 hover:bg-gray-50 transition-colors"
+                >
+                  <ChevronRight size={18} />
+                </button>
+              </Tooltip>
             </div>
           </div>
         )}
@@ -345,13 +370,6 @@ export default function ArticlesManager() {
         </div>
       )}
 
-      {isFormOpen && (
-        <ArticleForm
-          article={selectedArticle}
-          onClose={() => setIsFormOpen(false)}
-          onSuccess={handleFormSuccess}
-        />
-      )}
     </>
   );
 }

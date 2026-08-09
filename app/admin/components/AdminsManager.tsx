@@ -6,6 +6,7 @@ import { createAdmin, deleteAdmin, updateMyPassword } from "../actions/adminMana
 import toast from "react-hot-toast";
 import { User, Shield, Key, Plus, Trash2, Eye, EyeOff, Loader2, AlertCircle, CheckCircle2, Users, X } from "lucide-react";
 import { Skeleton } from "@/app/components/ui/Skeleton";
+import { Tooltip } from "@/app/components/ui/Tooltip";
 
 type AdminUser = {
   id: string;
@@ -276,13 +277,14 @@ export default function AdminsManager() {
                       </td>
                       <td className="px-5 py-4 text-right">
                         {admin.id !== currentUserId && (
-                          <button
-                            onClick={() => confirmDelete(admin)}
-                            className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-red-500/20"
-                            title="Hapus Admin"
-                          >
-                            <Trash2 size={18} />
-                          </button>
+                          <Tooltip content="Hapus Admin">
+                            <button
+                              onClick={() => confirmDelete(admin)}
+                              className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-red-500/20"
+                            >
+                              <Trash2 size={18} />
+                            </button>
+                          </Tooltip>
                         )}
                         {admin.id === currentUserId && (
                           <span className="text-xs text-gray-400 italic px-2">Anda</span>

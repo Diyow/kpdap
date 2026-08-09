@@ -6,11 +6,13 @@ import { sanitizeFilterValue } from "@/utils/sanitize";
 import { 
   Loader2, 
   Search, 
+  Filter,
   ChevronLeft, 
   ChevronRight, 
-  Activity, 
   Clock, 
-  ShieldAlert, 
+  Activity,
+  ShieldAlert,
+  History,
   Package, 
   PackagePlus,
   PackageMinus,
@@ -32,6 +34,8 @@ import {
   PlusCircle
 } from "lucide-react";
 import { Skeleton } from "@/app/components/ui/Skeleton";
+import { Tooltip } from "@/app/components/ui/Tooltip";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/app/components/ui/Select";
 
 type AdminLog = {
   id: string;
@@ -49,6 +53,7 @@ export default function AdminLogsManager() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [actionFilter, setActionFilter] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
 
@@ -74,6 +79,11 @@ export default function AdminLogsManager() {
       query = query.or(`admin_email.ilike.%${sanitized}%,description.ilike.%${sanitized}%`);
     }
 
+    if (actionFilter && actionFilter !== "all") {
+      const sanitizedFilter = sanitizeFilterValue(actionFilter);
+      query = query.ilike("action_type", `%${sanitizedFilter}%`);
+    }
+
     const from = (currentPage - 1) * ITEMS_PER_PAGE;
     const to = from + ITEMS_PER_PAGE - 1;
 
@@ -87,7 +97,7 @@ export default function AdminLogsManager() {
       console.error("Error fetching logs", error);
     }
     setLoading(false);
-  }, [supabase, debouncedSearch, currentPage]);
+  }, [supabase, debouncedSearch, actionFilter, currentPage]);
 
   useEffect(() => {
     fetchLogs();
@@ -146,7 +156,7 @@ export default function AdminLogsManager() {
       <div className="p-6 md:p-8 border-b border-gray-100 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-gray-50/50">
         <div className="flex items-center gap-3">
           <div className="w-12 h-12 bg-brand-lightbg rounded-xl flex items-center justify-center text-brand-green shrink-0 shadow-sm border border-brand-green/10">
-            <ShieldAlert size={24} />
+            <History size={24} />
           </div>
           <div>
             <h2 className="text-xl font-bold text-gray-900">Log Aktivitas Admin</h2>
@@ -154,15 +164,46 @@ export default function AdminLogsManager() {
           </div>
         </div>
 
-        <div className="w-full md:w-auto relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
-          <input
-            type="text"
-            placeholder="Cari email atau deskripsi..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full md:w-64 pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-green/20 focus:border-brand-green transition-all text-sm shadow-sm"
-          />
+        <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto shrink-0">
+          <div className="w-full sm:w-64 relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
+            <input
+              type="text"
+              placeholder="Cari email atau deskripsi..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-green/20 focus:border-brand-green transition-all text-sm shadow-sm h-10"
+            />
+          </div>
+          
+          <div className="relative w-full sm:w-48 z-10 shrink-0">
+            <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 z-10 pointer-events-none">
+              <Filter size={16} />
+            </div>
+            <Select 
+              value={actionFilter} 
+              onValueChange={(val) => {
+                setActionFilter(val);
+                setCurrentPage(1);
+              }}
+            >
+              <SelectTrigger className="pl-9 h-10 shadow-sm text-sm">
+                <SelectValue placeholder="Semua Aktivitas" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Semua Aktivitas</SelectItem>
+                <SelectItem value="PRODUCT">Produk</SelectItem>
+                <SelectItem value="CATEGORY">Kategori</SelectItem>
+                <SelectItem value="ORDER">Pesanan</SelectItem>
+                <SelectItem value="ARTICLE">Artikel</SelectItem>
+                <SelectItem value="ADMIN">Admin</SelectItem>
+                <SelectItem value="PASSWORD">Password</SelectItem>
+                <SelectItem value="CONTACT">Kontak</SelectItem>
+                <SelectItem value="LOGIN">Login</SelectItem>
+                <SelectItem value="LOGOUT">Logout</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
         </div>
       </div>
 
@@ -229,25 +270,27 @@ export default function AdminLogsManager() {
               Menampilkan {(currentPage - 1) * ITEMS_PER_PAGE + 1} - {Math.min(currentPage * ITEMS_PER_PAGE, totalCount)} dari {totalCount} log
             </span>
             <div className="flex gap-2">
-              <button
-                onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-                disabled={currentPage === 1}
-                className="p-2 border border-gray-200 rounded-lg text-gray-600 hover:bg-gray-100 hover:text-gray-900 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                title="Halaman Sebelumnya"
-              >
-                <ChevronLeft size={18} />
-              </button>
+              <Tooltip content="Halaman Sebelumnya">
+                <button
+                  onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                  disabled={currentPage === 1}
+                  className="p-2 border border-gray-200 rounded-lg text-gray-600 hover:bg-gray-100 hover:text-gray-900 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  <ChevronLeft size={18} />
+                </button>
+              </Tooltip>
               <div className="flex items-center px-4 font-medium text-sm text-gray-700 bg-gray-50 border border-gray-200 rounded-lg">
                 {currentPage} / {totalPages}
               </div>
-              <button
-                onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-                disabled={currentPage === totalPages}
-                className="p-2 border border-gray-200 rounded-lg text-gray-600 hover:bg-gray-100 hover:text-gray-900 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                title="Halaman Selanjutnya"
-              >
-                <ChevronRight size={18} />
-              </button>
+              <Tooltip content="Halaman Selanjutnya">
+                <button
+                  onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                  disabled={currentPage === totalPages}
+                  className="p-2 border border-gray-200 rounded-lg text-gray-600 hover:bg-gray-100 hover:text-gray-900 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  <ChevronRight size={18} />
+                </button>
+              </Tooltip>
             </div>
           </div>
         )}

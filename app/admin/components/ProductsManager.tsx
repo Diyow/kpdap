@@ -2,9 +2,10 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { createClient } from "@/utils/supabase/client";
-import { Plus, Pencil, Trash2, Loader2, Image as ImageIcon, Search, ChevronLeft, ChevronRight, AlertCircle } from "lucide-react";
+import { Search, Plus, Pencil, Trash2, ChevronLeft, ChevronRight, Package, Image as ImageIcon, Loader2, AlertCircle } from "lucide-react";
 import Image from "next/image";
 import ProductForm from "./ProductForm";
+import { Tooltip } from "@/app/components/ui/Tooltip";
 import { Skeleton } from "@/app/components/ui/Skeleton";
 import { logAdminActivity } from "../actions/logger";
 
@@ -182,10 +183,15 @@ export default function ProductsManager() {
 
   return (
     <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
-        <div>
-          <h2 className="text-2xl font-bold text-brand-text mb-1">Produk</h2>
-          <p className="text-gray-500 text-sm">Kelola katalog produk Anda</p>
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8 border-b border-gray-100 pb-6">
+        <div className="flex items-center gap-4">
+          <div className="w-12 h-12 bg-brand-lightbg rounded-xl flex items-center justify-center text-brand-green shrink-0 shadow-sm border border-brand-green/10">
+            <Package size={24} />
+          </div>
+          <div>
+            <h2 className="text-2xl font-bold text-brand-text mb-1">Produk</h2>
+            <p className="text-gray-500 text-sm">Kelola katalog produk Anda</p>
+          </div>
         </div>
         
         <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
@@ -248,12 +254,16 @@ export default function ProductsManager() {
                 <td className="py-4 px-5 font-medium text-brand-green">{formatRupiah(product.price)}</td>
                 <td className="py-4 px-5">
                   <div className="flex justify-end gap-2">
-                    <button onClick={() => setIsEditing(product)} className="p-2 text-gray-400 hover:text-brand-green hover:bg-brand-green/10 rounded-lg transition-colors">
-                      <Pencil size={18} />
-                    </button>
-                    <button onClick={() => confirmDelete(product)} className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors" title="Hapus Produk">
-                      <Trash2 size={18} />
-                    </button>
+                    <Tooltip content="Edit Produk">
+                      <button onClick={() => setIsEditing(product)} className="p-2 text-gray-400 hover:text-brand-green hover:bg-brand-green/10 rounded-lg transition-colors">
+                        <Pencil size={18} />
+                      </button>
+                    </Tooltip>
+                    <Tooltip content="Hapus Produk">
+                      <button onClick={() => confirmDelete(product)} className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors">
+                        <Trash2 size={18} />
+                      </button>
+                    </Tooltip>
                   </div>
                 </td>
               </tr>
@@ -276,20 +286,24 @@ export default function ProductsManager() {
             Menampilkan {(currentPage - 1) * ITEMS_PER_PAGE + 1} - {Math.min(currentPage * ITEMS_PER_PAGE, totalCount)} dari {totalCount} produk
           </p>
           <div className="flex gap-2">
-            <button 
-              onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-              disabled={currentPage === 1}
-              className="p-2 border border-gray-200 rounded-lg disabled:opacity-50 hover:bg-gray-50 transition-colors"
-            >
-              <ChevronLeft size={18} />
-            </button>
-            <button 
-              onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-              disabled={currentPage === totalPages}
-              className="p-2 border border-gray-200 rounded-lg disabled:opacity-50 hover:bg-gray-50 transition-colors"
-            >
-              <ChevronRight size={18} />
-            </button>
+            <Tooltip content="Halaman Sebelumnya">
+              <button 
+                onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                disabled={currentPage === 1}
+                className="p-2 border border-gray-200 rounded-lg disabled:opacity-50 hover:bg-gray-50 transition-colors"
+              >
+                <ChevronLeft size={18} />
+              </button>
+            </Tooltip>
+            <Tooltip content="Halaman Selanjutnya">
+              <button 
+                onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                disabled={currentPage === totalPages}
+                className="p-2 border border-gray-200 rounded-lg disabled:opacity-50 hover:bg-gray-50 transition-colors"
+              >
+                <ChevronRight size={18} />
+              </button>
+            </Tooltip>
           </div>
         </div>
       )}

@@ -11,7 +11,7 @@ import CustomersManager from "./components/CustomersManager";
 import OrdersManager from "./components/OrdersManager";
 import AdminLogsManager from "./components/AdminLogsManager";
 import ArticlesManager from "./components/ArticlesManager";
-import { Package, Briefcase, Phone, LayoutDashboard, Users, ShoppingCart, Activity, ChevronLeft, ChevronRight, Shield, FileText } from "lucide-react";
+import { Package, Briefcase, Contact, LayoutDashboard, Users, ShoppingCart, ShieldAlert, History, ChevronLeft, ChevronRight, Shield, Newspaper } from "lucide-react";
 
 export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState("dashboard");
@@ -79,10 +79,10 @@ export default function AdminDashboard() {
     { id: "orders", label: "Pesanan", icon: ShoppingCart },
     { id: "customers", label: "Pelanggan", icon: Users },
     { id: "products", label: "Produk", icon: Package },
-    { id: "articles", label: "Artikel", icon: FileText },
-    { id: "contact", label: "Info Kontak", icon: Phone },
+    { id: "articles", label: "Artikel", icon: Newspaper },
+    { id: "contact", label: "Info Kontak", icon: Contact },
     { id: "admins", label: "Manajemen Admin", icon: Shield },
-    { id: "logs", label: "Log Aktivitas", icon: Activity },
+    { id: "logs", label: "Log Aktivitas", icon: History },
   ];
 
   return (

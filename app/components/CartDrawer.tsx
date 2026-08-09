@@ -29,8 +29,7 @@ export default function CartDrawer() {
       {/* Backdrop */}
       {isCartOpen && (
         <div 
-          className="fixed inset-0 bg-transparent z-40"
-          onClick={() => setIsCartOpen(false)}
+          className="fixed inset-0 bg-transparent z-40 pointer-events-none"
         />
       )}
 

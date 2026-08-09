@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { createClient } from "@/utils/supabase/client";
-import { Loader2, Phone, Mail } from "lucide-react";
+import { Loader2, Phone, Mail, Contact } from "lucide-react";
 import { logAdminActivity } from "../actions/logger";
 
 import { Skeleton } from "@/app/components/ui/Skeleton";
@@ -77,11 +77,18 @@ export default function ContactInfoManager() {
 
   return (
     <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
-      <div className="mb-8">
-        <h2 className="text-2xl font-bold text-brand-text mb-1">Info Kontak</h2>
-        <p className="text-gray-500 text-sm">
-          Perbarui email dan nomor telepon yang ditampilkan di seluruh website
-        </p>
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8 border-b border-gray-100 pb-6">
+        <div className="flex items-center gap-4">
+          <div className="w-12 h-12 bg-brand-lightbg rounded-xl flex items-center justify-center text-brand-green shrink-0 shadow-sm border border-brand-green/10">
+            <Contact size={24} />
+          </div>
+          <div>
+            <h2 className="text-2xl font-bold text-brand-text mb-1">Info Kontak</h2>
+            <p className="text-gray-500 text-sm">
+              Perbarui email dan nomor telepon yang ditampilkan di seluruh website
+            </p>
+          </div>
+        </div>
       </div>
 
       {message && (

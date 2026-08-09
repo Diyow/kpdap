@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import * as Dialog from "@radix-ui/react-dialog";
 import Image from "next/image";
 import { X, ShoppingCart, Minus, Plus } from "lucide-react";
 import { useCartStore } from "@/store/useCartStore";
@@ -38,15 +39,7 @@ export default function QuickAddModal({ product, isOpen, onClose }: QuickAddModa
 
   useEffect(() => {
     setMounted(true);
-    if (isOpen) {
-      document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "unset";
-    }
-    return () => {
-      document.body.style.overflow = "unset";
-    };
-  }, [isOpen]);
+  }, []);
 
   // Reset state when product changes
   useEffect(() => {
@@ -58,7 +51,7 @@ export default function QuickAddModal({ product, isOpen, onClose }: QuickAddModa
     setQuantity(1);
   }, [product.id, product.variations]);
 
-  if (!isOpen || !mounted) return null;
+  if (!mounted) return null;
 
   const displayPrice = selectedVariation ? selectedVariation.price : product.price;
 
@@ -88,88 +81,95 @@ export default function QuickAddModal({ product, isOpen, onClose }: QuickAddModa
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      {/* Backdrop */}
-      <div 
-        className="absolute inset-0 bg-black/40 backdrop-blur-sm transition-opacity"
-        onClick={onClose}
-      />
-      
-      {/* Modal */}
-      <div className="relative bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in-95 duration-200">
-        <button 
-          onClick={onClose}
-          className="absolute top-4 right-4 p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-colors z-10"
-        >
-          <X size={20} />
-        </button>
-
-        <div className="p-6">
-          <div className="flex gap-4 mb-6">
-            <div className="relative w-24 h-24 rounded-lg overflow-hidden shrink-0 border border-gray-100 bg-gray-50">
-              {product.image ? (
-                <Image src={product.image} alt={product.title} fill className="object-cover" />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center text-gray-400 text-xs">No Image</div>
-              )}
-            </div>
-            <div className="flex flex-col justify-center">
-              <h3 className="font-bold text-lg text-brand-text line-clamp-2 leading-tight mb-1">{product.title}</h3>
-              <p className="text-brand-green font-bold text-xl">{formatRupiah(displayPrice)}</p>
-            </div>
-          </div>
-
-          {variations.length > 0 && (
-            <div className="mb-6">
-              <h4 className="text-sm font-medium text-gray-700 mb-3">Pilih Variasi</h4>
-              <div className="flex flex-wrap gap-2">
-                {variations.map((v) => (
-                  <button
-                    key={v.name}
-                    onClick={() => setSelectedVariation(v)}
-                    className={`px-4 py-2 rounded-lg border text-sm font-medium transition-all ${
-                      selectedVariation?.name === v.name
-                        ? "border-brand-green bg-brand-green/10 text-brand-darkgreen"
-                        : "border-gray-200 text-gray-600 hover:border-gray-300 hover:bg-gray-50"
-                    }`}
-                  >
-                    {v.name}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-
-          <div className="mb-8">
-            <h4 className="text-sm font-medium text-gray-700 mb-3">Jumlah</h4>
-            <div className="flex items-center gap-4">
-              <div className="flex items-center border border-gray-200 rounded-lg bg-gray-50 h-10 w-32">
-                <button
-                  onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                  className="flex-1 flex items-center justify-center text-gray-500 hover:text-brand-green transition-colors h-full"
-                >
-                  <Minus size={16} />
-                </button>
-                <span className="w-10 text-center font-semibold text-gray-800">{quantity}</span>
-                <button
-                  onClick={() => setQuantity(quantity + 1)}
-                  className="flex-1 flex items-center justify-center text-gray-500 hover:text-brand-green transition-colors h-full"
-                >
-                  <Plus size={16} />
-                </button>
-              </div>
-            </div>
-          </div>
-
-          <button
-            onClick={handleAddToCart}
-            className="w-full bg-brand-green hover:bg-brand-darkgreen text-white font-bold py-3.5 px-4 rounded-xl flex items-center justify-center gap-2 transition-colors shadow-sm"
+    <Dialog.Root open={isOpen} onOpenChange={(open) => !open && onClose()}>
+      <Dialog.Portal>
+        <Dialog.Overlay className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0" />
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <Dialog.Content 
+            className="relative bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden outline-none data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 duration-200"
+            aria-describedby="quick-add-description"
           >
-            <ShoppingCart size={18} />
-            Tambah ke Keranjang
-          </button>
+            <Dialog.Title className="sr-only">Tambah ke Keranjang</Dialog.Title>
+            <Dialog.Description id="quick-add-description" className="sr-only">
+              Pilih variasi dan jumlah produk untuk ditambahkan ke keranjang.
+            </Dialog.Description>
+            
+            <Dialog.Close asChild>
+              <button 
+                className="absolute top-4 right-4 p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-colors z-10"
+              >
+                <X size={20} />
+              </button>
+            </Dialog.Close>
+
+            <div className="p-6">
+              <div className="flex gap-4 mb-6">
+                <div className="relative w-24 h-24 rounded-lg overflow-hidden shrink-0 border border-gray-100 bg-gray-50">
+                  {product.image ? (
+                    <Image src={product.image} alt={product.title} fill className="object-cover" />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-gray-400 text-xs">No Image</div>
+                  )}
+                </div>
+                <div className="flex flex-col justify-center">
+                  <h3 className="font-bold text-lg text-brand-text line-clamp-2 leading-tight mb-1">{product.title}</h3>
+                  <p className="text-brand-green font-bold text-xl">{formatRupiah(displayPrice)}</p>
+                </div>
+              </div>
+
+              {variations.length > 0 && (
+                <div className="mb-6">
+                  <h4 className="text-sm font-medium text-gray-700 mb-3">Pilih Variasi</h4>
+                  <div className="flex flex-wrap gap-2">
+                    {variations.map((v) => (
+                      <button
+                        key={v.name}
+                        onClick={() => setSelectedVariation(v)}
+                        className={`px-4 py-2 rounded-lg border text-sm font-medium transition-all ${
+                          selectedVariation?.name === v.name
+                            ? "border-brand-green bg-brand-green/10 text-brand-darkgreen"
+                            : "border-gray-200 text-gray-600 hover:border-gray-300 hover:bg-gray-50"
+                        }`}
+                      >
+                        {v.name}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              <div className="mb-8">
+                <h4 className="text-sm font-medium text-gray-700 mb-3">Jumlah</h4>
+                <div className="flex items-center gap-4">
+                  <div className="flex items-center border border-gray-200 rounded-lg bg-gray-50 h-10 w-32">
+                    <button
+                      onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                      className="flex-1 flex items-center justify-center text-gray-500 hover:text-brand-green transition-colors h-full"
+                    >
+                      <Minus size={16} />
+                    </button>
+                    <span className="w-10 text-center font-semibold text-gray-800">{quantity}</span>
+                    <button
+                      onClick={() => setQuantity(quantity + 1)}
+                      className="flex-1 flex items-center justify-center text-gray-500 hover:text-brand-green transition-colors h-full"
+                    >
+                      <Plus size={16} />
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <button
+                onClick={handleAddToCart}
+                className="w-full bg-brand-green hover:bg-brand-darkgreen text-white font-bold py-3.5 px-4 rounded-xl flex items-center justify-center gap-2 transition-colors shadow-sm"
+              >
+                <ShoppingCart size={18} />
+                Tambah ke Keranjang
+              </button>
+            </div>
+          </Dialog.Content>
         </div>
-      </div>
-    </div>
+      </Dialog.Portal>
+    </Dialog.Root>
   );
 }

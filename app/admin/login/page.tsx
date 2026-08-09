@@ -4,6 +4,7 @@ import { createClient } from "@/utils/supabase/client";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import BackLink from "@/app/components/BackLink";
+import { logAdminActivity } from "../actions/logger";
 
 export default function AdminLogin() {
   const [email, setEmail] = useState("");
@@ -27,6 +28,7 @@ export default function AdminLogin() {
       setError(error.message);
       setLoading(false);
     } else {
+      await logAdminActivity("LOGIN", "Admin telah masuk (login) ke sistem");
       router.push("/admin");
     }
   };

@@ -5,8 +5,12 @@ import { createClient } from "@/utils/supabase/client";
 import { Loader2, Trash2, Plus, UploadCloud, Info } from "lucide-react";
 import toast from "react-hot-toast";
 import Image from "next/image";
-import { Product } from "./ProductsManager";
+import type { Product } from "./ProductsManager";
 import { logAdminActivity } from "../actions/logger";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/app/components/ui/Select";
+import { Switch } from "@/app/components/ui/Switch";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/app/components/ui/Tabs";
+import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "@/app/components/ui/Accordion";
 
 type Category = {
   id: string;
@@ -250,7 +254,7 @@ export default function ProductForm({ initialData, onSave, onCancel }: ProductFo
       image: newThumbnailUrl,
       images: finalGallery,
       variations: variations,
-      category_id: (formData.get("category_id") as string) || null,
+      category_id: selectedCategory || null,
       is_active: formData.get("is_active") === "on",
       specifications: specsObj,
     };
@@ -283,8 +287,16 @@ export default function ProductForm({ initialData, onSave, onCancel }: ProductFo
       <h2 className="text-2xl font-bold text-brand-text mb-6">
         {initialData ? "Edit Produk" : "Tambah Produk Baru"}
       </h2>
-      <form onSubmit={handleSave} className="space-y-5">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <form onSubmit={handleSave} className="space-y-6">
+        <Tabs defaultValue="general" className="w-full">
+          <TabsList className="mb-6 w-full grid grid-cols-3 bg-gray-100/50 p-1.5 rounded-xl">
+            <TabsTrigger value="general" className="py-2.5 text-sm">Informasi Dasar</TabsTrigger>
+            <TabsTrigger value="price_stock" className="py-2.5 text-sm">Harga & Stok</TabsTrigger>
+            <TabsTrigger value="media_vars" className="py-2.5 text-sm">Media & Variasi</TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="general" className="space-y-5 animate-in fade-in slide-in-from-bottom-2 duration-300">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-medium text-brand-text mb-1">Judul Produk <span className="text-red-500">*</span></label>
             <input name="title" defaultValue={initialData?.title} required className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-brand-green/20 focus:border-brand-green transition-colors outline-none" />
@@ -352,18 +364,22 @@ export default function ProductForm({ initialData, onSave, onCancel }: ProductFo
                 </button>
               </div>
             ) : (
-              <select 
+              <Select 
                 name="category_id" 
-                value={selectedCategory}
-                onChange={(e) => setSelectedCategory(e.target.value)}
-                required 
-                className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-brand-green/20 focus:border-brand-green transition-colors outline-none"
+                value={selectedCategory} 
+                onValueChange={setSelectedCategory}
+                required
               >
-                <option value="">Pilih Kategori</option>
-                {categories.map((cat) => (
-                  <option key={cat.id} value={cat.id}>{cat.name}</option>
-                ))}
-              </select>
+                <SelectTrigger className="w-full h-10">
+                  <SelectValue placeholder="Pilih Kategori" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">Pilih Kategori</SelectItem>
+                  {categories.map((cat) => (
+                    <SelectItem key={cat.id} value={cat.id}>{cat.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             )}
           </div>
         </div>
@@ -373,6 +389,16 @@ export default function ProductForm({ initialData, onSave, onCancel }: ProductFo
           <textarea name="description" defaultValue={initialData?.description || ""} rows={3} className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-brand-green/20 focus:border-brand-green transition-colors outline-none" />
         </div>
 
+        <div className="flex items-center justify-between p-4 border border-gray-200 rounded-xl bg-gray-50/50">
+          <div>
+            <label htmlFor="is_active" className="text-sm font-semibold text-brand-text block">Produk Aktif</label>
+            <span className="text-xs text-gray-500">Tampilkan produk ini di katalog publik</span>
+          </div>
+          <Switch id="is_active" name="is_active" defaultChecked={initialData?.is_active ?? true} />
+        </div>
+      </TabsContent>
+
+      <TabsContent value="price_stock" className="space-y-5 animate-in fade-in slide-in-from-bottom-2 duration-300">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
           <div>
             <label className="block text-sm font-medium text-brand-text mb-1">Harga (Rp) <span className="text-red-500">*</span></label>
@@ -385,10 +411,14 @@ export default function ProductForm({ initialData, onSave, onCancel }: ProductFo
           <div>
             <div className="flex items-center justify-between mb-1">
               <label className="block text-sm font-medium text-brand-text">Stok <span className="text-red-500">*</span></label>
-              <label className="flex items-center gap-1 cursor-pointer">
-                <input type="checkbox" checked={isUnlimitedStock} onChange={(e) => setIsUnlimitedStock(e.target.checked)} className="w-3 h-3 text-brand-green rounded focus:ring-brand-green" />
+              <div className="flex items-center gap-2">
                 <span className="text-[10px] text-gray-500 font-medium">Tanpa Batas</span>
-              </label>
+                <Switch 
+                  checked={isUnlimitedStock} 
+                  onCheckedChange={setIsUnlimitedStock} 
+                  className="scale-[0.8]"
+                />
+              </div>
             </div>
             <input type="number" name="stock" defaultValue={initialData?.stock === -1 ? 0 : (initialData?.stock || 0)} min="0" required={!isUnlimitedStock} disabled={isUnlimitedStock} className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-brand-green/20 focus:border-brand-green transition-colors outline-none disabled:bg-gray-100 disabled:text-gray-400" />
           </div>
@@ -401,15 +431,19 @@ export default function ProductForm({ initialData, onSave, onCancel }: ProductFo
             <input name="badge" defaultValue={initialData?.badge || ""} placeholder="Cth., Best Seller" className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-brand-green/20 focus:border-brand-green transition-colors outline-none" />
           </div>
         </div>
+      </TabsContent>
 
-        <div className="flex items-center gap-2 mt-4">
-          <input type="checkbox" id="is_active" name="is_active" defaultChecked={initialData?.is_active ?? true} className="w-4 h-4 text-brand-green rounded focus:ring-brand-green" />
-          <label htmlFor="is_active" className="text-sm font-medium text-brand-text">Produk Aktif (Tampil di Katalog)</label>
-        </div>
+      <TabsContent value="media_vars" className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
+        
+        <Accordion type="multiple" className="w-full space-y-4">
+          <AccordionItem value="variations" className="border border-gray-200 rounded-xl bg-gray-50/30 px-5 border-b-gray-200">
+            <AccordionTrigger className="hover:no-underline">
+              <h3 className="font-semibold text-brand-text text-sm">Variasi & Harga Khusus (Opsional)</h3>
+            </AccordionTrigger>
+            <AccordionContent>
+              <div className="pt-2 pb-4">
+                <div className="flex justify-end mb-3">
 
-        <div className="p-4 bg-gray-50 border border-gray-100 rounded-lg">
-          <div className="flex items-center justify-between mb-3">
-            <h3 className="font-semibold text-brand-text text-sm">Variasi & Harga Khusus (Opsional)</h3>
             <button 
               type="button" 
               onClick={() => setVariations([...variations, { 
@@ -519,11 +553,18 @@ export default function ProductForm({ initialData, onSave, onCancel }: ProductFo
               </button>
             </div>
           )}
-        </div>
+              </div>
+            </AccordionContent>
+          </AccordionItem>
 
-        <div className="p-4 bg-gray-50 border border-gray-100 rounded-lg">
-          <div className="flex items-center justify-between mb-3">
-            <h3 className="font-semibold text-brand-text text-sm">Spesifikasi Tambahan (Opsional)</h3>
+          <AccordionItem value="specifications" className="border border-gray-200 rounded-xl bg-gray-50/30 px-5 border-b-gray-200">
+            <AccordionTrigger className="hover:no-underline">
+              <h3 className="font-semibold text-brand-text text-sm">Spesifikasi Tambahan (Opsional)</h3>
+            </AccordionTrigger>
+            <AccordionContent>
+              <div className="pt-2 pb-4">
+                <div className="flex justify-end mb-3">
+
             <button 
               type="button" 
               onClick={() => setSpecifications([...specifications, { name: "", value: "" }])}
@@ -585,9 +626,12 @@ export default function ProductForm({ initialData, onSave, onCancel }: ProductFo
               </button>
             </div>
           )}
-        </div>
+              </div>
+            </AccordionContent>
+          </AccordionItem>
+        </Accordion>
 
-        <div className="flex flex-col gap-4">
+        <div className="flex flex-col gap-4 p-5 border border-gray-200 rounded-xl">
           <div>
             <label className="block text-sm font-medium text-brand-text mb-2">Gambar Produk <span className="text-red-500">*</span></label>
             
@@ -680,8 +724,11 @@ export default function ProductForm({ initialData, onSave, onCancel }: ProductFo
             </div>
           )}
         </div>
-        <div className="flex gap-4 pt-4">
-          <button type="submit" disabled={isSaving} className="flex items-center gap-2 bg-brand-green text-white px-6 py-2.5 rounded-lg font-medium hover:bg-brand-darkgreen transition-all shadow-sm hover:shadow-md disabled:opacity-70 disabled:cursor-not-allowed">
+      </TabsContent>
+      </Tabs>
+
+        <div className="flex items-center justify-end gap-3 pt-6 mt-6 border-t border-gray-100">
+          <button type="submit" disabled={isSaving} className="bg-brand-green text-white px-6 py-2.5 rounded-lg font-medium hover:bg-brand-darkgreen transition-colors flex items-center gap-2 disabled:opacity-50">
             {isSaving ? <Loader2 size={18} className="animate-spin" /> : null}
             {isSaving ? "Menyimpan..." : "Simpan Produk"}
           </button>

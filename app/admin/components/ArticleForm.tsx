@@ -4,6 +4,9 @@ import { useState, useRef, useEffect } from "react";
 import { createClient } from "@/utils/supabase/client";
 import { X, Loader2, Upload, Trash2, Image as ImageIcon, Globe, Lock, Eye, Code, HelpCircle, Info } from "lucide-react";
 import toast from "react-hot-toast";
+import { Tooltip } from "@/app/components/ui/Tooltip";
+import { Switch } from "@/app/components/ui/Switch";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/app/components/ui/Dialog";
 import ReactMarkdown from "react-markdown";
 import type { Article } from "./ArticlesManager";
 import { logAdminActivity } from "../actions/logger";
@@ -132,23 +135,15 @@ export default function ArticleForm({ article, onClose, onSuccess }: ArticleForm
   };
 
   return (
-    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 overflow-y-auto">
-      <div className="bg-white rounded-2xl w-full max-w-4xl shadow-xl flex flex-col max-h-[90vh]">
+    <>
+    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
+      <div className="mb-6">
+        <h2 className="text-2xl font-bold text-brand-text">
+          {article ? "Edit Artikel" : "Tulis Artikel Baru"}
+        </h2>
+      </div>
 
-        <div className="flex items-center justify-between p-6 border-b border-gray-100 shrink-0">
-          <h2 className="text-xl font-bold text-gray-800">
-            {article ? "Edit Artikel" : "Tulis Artikel Baru"}
-          </h2>
-          <button
-            onClick={onClose}
-            className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
-          >
-            <X size={20} />
-          </button>
-        </div>
-
-        <div className="p-6 overflow-y-auto flex-1 custom-scrollbar">
-          <form id="article-form" onSubmit={handleSubmit} className="space-y-6">
+      <form id="article-form" onSubmit={handleSubmit} className="space-y-6">
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div className="md:col-span-2 space-y-6">
@@ -231,22 +226,15 @@ export default function ArticleForm({ article, onClose, onSuccess }: ArticleForm
               <div className="space-y-6">
                 <div className="bg-gray-50 p-4 rounded-xl border border-gray-100 space-y-4">
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">Status Publikasi</label>
-                    <div className="flex gap-2">
-                      <button
-                        type="button"
-                        onClick={() => setIsPublished(false)}
-                        className={`flex-1 py-2 px-3 rounded-lg flex items-center justify-center gap-2 text-sm font-medium transition-colors border ${!isPublished ? 'bg-white border-brand-green text-brand-green shadow-sm' : 'bg-transparent border-gray-200 text-gray-500 hover:bg-gray-100'}`}
-                      >
-                        <Lock size={16} /> Draf
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setIsPublished(true)}
-                        className={`flex-1 py-2 px-3 rounded-lg flex items-center justify-center gap-2 text-sm font-medium transition-colors border ${isPublished ? 'bg-emerald-50 border-emerald-500 text-emerald-700 shadow-sm' : 'bg-transparent border-gray-200 text-gray-500 hover:bg-gray-100'}`}
-                      >
-                        <Globe size={16} /> Publik
-                      </button>
+                    <div className="flex items-center justify-between mt-2">
+                      <div className="flex flex-col">
+                        <span className="text-sm font-semibold text-gray-700">Publikasi Artikel</span>
+                        <span className="text-xs text-gray-500">{isPublished ? "Tampil di halaman utama" : "Disimpan sebagai draf"}</span>
+                      </div>
+                      <Switch 
+                        checked={isPublished} 
+                        onCheckedChange={setIsPublished} 
+                      />
                     </div>
                   </div>
 
@@ -270,22 +258,24 @@ export default function ArticleForm({ article, onClose, onSuccess }: ArticleForm
                     <div className="relative group rounded-xl overflow-hidden border border-gray-200 aspect-video bg-gray-50">
                       <img src={coverImageUrl} alt="Cover" className="w-full h-full object-cover" />
                       <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3">
-                        <button
-                          type="button"
-                          onClick={() => fileInputRef.current?.click()}
-                          className="p-2 bg-white text-gray-700 hover:text-brand-green rounded-lg transition-colors shadow-sm"
-                          title="Ganti Gambar"
-                        >
-                          <Upload size={18} />
-                        </button>
-                        <button
-                          type="button"
-                          onClick={removeImage}
-                          className="p-2 bg-white text-gray-700 hover:text-red-600 rounded-lg transition-colors shadow-sm"
-                          title="Hapus Gambar"
-                        >
-                          <Trash2 size={18} />
-                        </button>
+                        <Tooltip content="Ganti Gambar">
+                          <button
+                            type="button"
+                            onClick={() => fileInputRef.current?.click()}
+                            className="p-2 bg-white text-gray-700 hover:text-brand-green rounded-lg transition-colors shadow-sm"
+                          >
+                            <Upload size={18} />
+                          </button>
+                        </Tooltip>
+                        <Tooltip content="Hapus Gambar">
+                          <button
+                            type="button"
+                            onClick={removeImage}
+                            className="p-2 bg-white text-gray-700 hover:text-red-600 rounded-lg transition-colors shadow-sm"
+                          >
+                            <Trash2 size={18} />
+                          </button>
+                        </Tooltip>
                       </div>
                     </div>
                   ) : (
@@ -328,81 +318,76 @@ export default function ArticleForm({ article, onClose, onSuccess }: ArticleForm
               </div>
             </div>
 
+            <div className="pt-6 border-t border-gray-100 flex items-center justify-end gap-3 mt-8">
+              <button
+                type="submit"
+                disabled={saving || uploadingImage}
+                className="px-6 py-2.5 bg-brand-green text-white font-medium rounded-lg hover:bg-brand-darkgreen transition-colors disabled:opacity-50 flex items-center gap-2 shadow-sm"
+              >
+                {saving && <Loader2 size={18} className="animate-spin" />}
+                {saving ? "Menyimpan..." : (article ? "Simpan Perubahan" : "Terbitkan Artikel")}
+              </button>
+              <button
+                type="button"
+                onClick={onClose}
+                disabled={saving}
+                className="px-6 py-2.5 text-gray-600 font-medium hover:bg-gray-100 rounded-lg transition-colors disabled:opacity-50"
+              >
+                Batal
+              </button>
+            </div>
+
           </form>
-        </div>
-
-        <div className="p-6 border-t border-gray-100 flex items-center justify-end gap-3 bg-gray-50/50 rounded-b-2xl shrink-0">
-          <button
-            type="button"
-            onClick={onClose}
-            disabled={saving}
-            className="px-5 py-2.5 text-gray-600 font-medium hover:bg-gray-100 rounded-lg transition-colors disabled:opacity-50"
-          >
-            Batal
-          </button>
-          <button
-            type="submit"
-            form="article-form"
-            disabled={saving || uploadingImage}
-            className="px-6 py-2.5 bg-brand-green text-white font-medium rounded-lg hover:bg-brand-darkgreen transition-colors disabled:opacity-50 flex items-center gap-2 shadow-sm"
-          >
-            {saving && <Loader2 size={18} className="animate-spin" />}
-            {saving ? "Menyimpan..." : (article ? "Simpan Perubahan" : "Terbitkan Artikel")}
-          </button>
-        </div>
-
-      </div>
+    </div>
 
       {/* Markdown Guide Modal */}
-      {showMarkdownGuide && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-white/10 backdrop-blur-sm transition-opacity" onClick={() => setShowMarkdownGuide(false)} />
-          <div className="relative bg-white rounded-2xl shadow-xl w-full max-w-2xl overflow-hidden animate-in fade-in zoom-in-95">
-            <div className="flex justify-between items-center p-5 border-b border-gray-100">
-              <h3 className="font-bold text-lg text-gray-800">Panduan Penulisan Markdown</h3>
-              <button onClick={() => setShowMarkdownGuide(false)} className="text-gray-400 hover:text-gray-600 transition-colors p-1"><X size={20} /></button>
-            </div>
-            <div className="p-6 overflow-y-auto max-h-[70vh] bg-gray-50 text-sm space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="bg-white p-4 rounded-lg border border-gray-200">
-                  <h4 className="font-bold text-gray-700 mb-2 border-b pb-1">Format Teks</h4>
-                  <p><code className="bg-gray-100 px-1 rounded">**Teks Tebal**</code> &rarr; <strong>Teks Tebal</strong></p>
-                  <p className="mt-2"><code className="bg-gray-100 px-1 rounded">*Teks Miring*</code> &rarr; <em>Teks Miring</em></p>
-                </div>
-                <div className="bg-white p-4 rounded-lg border border-gray-200">
-                  <h4 className="font-bold text-gray-700 mb-2 border-b pb-1">Judul (Heading)</h4>
-                  <p><code className="bg-gray-100 px-1 rounded"># Judul Besar</code></p>
-                  <p className="mt-2"><code className="bg-gray-100 px-1 rounded">## Judul Sedang</code></p>
-                  <p className="mt-2"><code className="bg-gray-100 px-1 rounded">### Judul Kecil</code></p>
-                </div>
-                <div className="bg-white p-4 rounded-lg border border-gray-200">
-                  <h4 className="font-bold text-gray-700 mb-2 border-b pb-1">Daftar (List)</h4>
-                  <p><code className="bg-gray-100 px-1 rounded">- Poin satu</code><br /><code className="bg-gray-100 px-1 rounded">- Poin dua</code></p>
-                  <p className="mt-2"><code className="bg-gray-100 px-1 rounded">1. Langkah satu</code><br /><code className="bg-gray-100 px-1 rounded">2. Langkah dua</code></p>
-                </div>
-                <div className="bg-white p-4 rounded-lg border border-gray-200">
-                  <h4 className="font-bold text-gray-700 mb-2 border-b pb-1">Link & Kutipan</h4>
-                  <p><code className="bg-gray-100 px-1 rounded">[Teks Link](https://web.com)</code></p>
-                  <p className="mt-2"><code className="bg-gray-100 px-1 rounded">&gt; Kutipan Blok</code></p>
-                </div>
-                <div className="bg-white p-4 rounded-lg border border-gray-200">
-                  <h4 className="font-bold text-gray-700 mb-2 border-b pb-1">Gambar & Garis</h4>
-                  <p><code className="bg-gray-100 px-1 rounded">![Teks Alternatif](URL Gambar)</code></p>
-                  <p className="mt-2"><code className="bg-gray-100 px-1 rounded">---</code> &rarr; Garis Pembatas</p>
-                </div>
-                <div className="bg-white p-4 rounded-lg border border-gray-200">
-                  <h4 className="font-bold text-gray-700 mb-2 border-b pb-1">Kode (Code)</h4>
-                  <p><code className="bg-gray-100 px-1 rounded">`Kode Inline`</code> &rarr; <code>Kode</code></p>
-                  <p className="mt-2"><code className="bg-gray-100 px-1 rounded">```</code><br /><code className="bg-gray-100 px-1 text-gray-500">Blok Kode Panjang</code><br /><code className="bg-gray-100 px-1 rounded">```</code></p>
-                </div>
+      <Dialog open={showMarkdownGuide} onOpenChange={setShowMarkdownGuide}>
+        <DialogContent className="max-w-2xl p-0 overflow-hidden gap-0 bg-gray-50">
+          <DialogHeader className="p-5 border-b border-gray-100 bg-white">
+            <DialogTitle>Panduan Penulisan Markdown</DialogTitle>
+          </DialogHeader>
+          <div className="p-6 overflow-y-auto max-h-[70vh] text-sm space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="bg-white p-4 rounded-lg border border-gray-200">
+                <h4 className="font-bold text-gray-700 mb-2 border-b pb-1">Format Teks</h4>
+                <p><code className="bg-gray-100 px-1 rounded">**Teks Tebal**</code> &rarr; <strong>Teks Tebal</strong></p>
+                <p className="mt-2"><code className="bg-gray-100 px-1 rounded">*Teks Miring*</code> &rarr; <em>Teks Miring</em></p>
+              </div>
+              <div className="bg-white p-4 rounded-lg border border-gray-200">
+                <h4 className="font-bold text-gray-700 mb-2 border-b pb-1">Judul (Heading)</h4>
+                <p><code className="bg-gray-100 px-1 rounded"># Judul Besar</code></p>
+                <p className="mt-2"><code className="bg-gray-100 px-1 rounded">## Judul Sedang</code></p>
+                <p className="mt-2"><code className="bg-gray-100 px-1 rounded">### Judul Kecil</code></p>
+              </div>
+              <div className="bg-white p-4 rounded-lg border border-gray-200">
+                <h4 className="font-bold text-gray-700 mb-2 border-b pb-1">Daftar (List)</h4>
+                <p><code className="bg-gray-100 px-1 rounded">- Poin satu</code><br /><code className="bg-gray-100 px-1 rounded">- Poin dua</code></p>
+                <p className="mt-2"><code className="bg-gray-100 px-1 rounded">1. Langkah satu</code><br /><code className="bg-gray-100 px-1 rounded">2. Langkah dua</code></p>
+              </div>
+              <div className="bg-white p-4 rounded-lg border border-gray-200">
+                <h4 className="font-bold text-gray-700 mb-2 border-b pb-1">Link & Kutipan</h4>
+                <p><code className="bg-gray-100 px-1 rounded">[Teks Link](https://web.com)</code></p>
+                <p className="mt-2"><code className="bg-gray-100 px-1 rounded">&gt; Kutipan Blok</code></p>
+              </div>
+              <div className="bg-white p-4 rounded-lg border border-gray-200">
+                <h4 className="font-bold text-gray-700 mb-2 border-b pb-1">Gambar & Garis</h4>
+                <p><code className="bg-gray-100 px-1 rounded">![Teks Alternatif](URL Gambar)</code></p>
+                <p className="mt-2"><code className="bg-gray-100 px-1 rounded">---</code> &rarr; Garis Pembatas</p>
+              </div>
+              <div className="bg-white p-4 rounded-lg border border-gray-200">
+                <h4 className="font-bold text-gray-700 mb-2 border-b pb-1">Kode (Code)</h4>
+                <p><code className="bg-gray-100 px-1 rounded">`Kode Inline`</code> &rarr; <code>Kode</code></p>
+                <p className="mt-2"><code className="bg-gray-100 px-1 rounded">```</code><br /><code className="bg-gray-100 px-1 text-gray-500">Blok Kode Panjang</code><br /><code className="bg-gray-100 px-1 rounded">```</code></p>
               </div>
             </div>
-            <div className="p-4 border-t border-gray-100 bg-white flex justify-end">
-              <button onClick={() => setShowMarkdownGuide(false)} className="px-6 py-2 bg-brand-green text-white font-semibold rounded-lg hover:bg-brand-darkgreen transition-colors">Tutup Panduan</button>
-            </div>
           </div>
-        </div>
-      )}
-    </div>
+          <div className="p-4 border-t border-gray-100 bg-white flex justify-end">
+            <button type="button" onClick={() => setShowMarkdownGuide(false)} className="px-6 py-2 bg-brand-green text-white font-semibold rounded-lg hover:bg-brand-darkgreen transition-colors">
+              Tutup Panduan
+            </button>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }

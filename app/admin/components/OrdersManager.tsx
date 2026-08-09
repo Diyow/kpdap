@@ -4,9 +4,11 @@ import React, { useState, useEffect } from "react";
 import { createClient } from "@/utils/supabase/client";
 import { sanitizeFilterValue } from "@/utils/sanitize";
 import toast from "react-hot-toast";
-import { Loader2, Search, Filter, Send, MessageCircle, FileText, CheckCircle, Clock, XCircle, ChevronDown, ChevronUp, Copy, Check, ChevronLeft, ChevronRight, Package, Truck, Ban, Save } from "lucide-react";
+import { Loader2, Search, Filter, Send, MessageCircle, FileText, CheckCircle, Clock, XCircle, ChevronDown, ChevronUp, Copy, Check, ChevronLeft, ChevronRight, Package, Truck, Ban, Save, ShoppingCart } from "lucide-react";
 import { Skeleton } from "@/app/components/ui/Skeleton";
 import ConfirmModal from "@/app/components/ConfirmModal";
+import { Tooltip } from "@/app/components/ui/Tooltip";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/app/components/ui/Select";
 
 type Order = {
   id: string;
@@ -371,10 +373,15 @@ export default function OrdersManager() {
 
   return (
     <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 sm:p-8">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
-        <div>
-          <h2 className="text-2xl font-bold text-brand-text mb-2 tracking-tight">Manajemen Pesanan</h2>
-          <p className="text-gray-500">Kelola pesanan masuk dan kirim invoice WhatsApp ke pelanggan.</p>
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4 border-b border-gray-100 pb-6">
+        <div className="flex items-center gap-4">
+          <div className="w-12 h-12 bg-brand-lightbg rounded-xl flex items-center justify-center text-brand-green shrink-0 shadow-sm border border-brand-green/10">
+            <ShoppingCart size={24} />
+          </div>
+          <div>
+            <h2 className="text-2xl font-bold text-brand-text mb-2 tracking-tight">Manajemen Pesanan</h2>
+            <p className="text-gray-500">Kelola pesanan masuk dan kirim invoice WhatsApp ke pelanggan.</p>
+          </div>
         </div>
       </div>
 
@@ -389,25 +396,31 @@ export default function OrdersManager() {
             className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-green"
           />
         </div>
-        <div className="relative w-full md:w-48 shrink-0">
-          <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
-          <select
-            value={statusFilter}
-            onChange={(e) => {
-              setStatusFilter(e.target.value);
-              setCurrentPage(1); // Reset to page 1
+        <div className="relative w-full md:w-56 shrink-0 z-10">
+          <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 z-10 pointer-events-none">
+            <Filter size={18} />
+          </div>
+          <Select 
+            value={statusFilter} 
+            onValueChange={(val) => {
+              setStatusFilter(val);
+              setCurrentPage(1);
             }}
-            className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-green appearance-none bg-white"
           >
-            <option value="all">Semua Status</option>
-            <option value="pending">Menunggu Pembayaran</option>
-            <option value="paid">Sudah Dibayar</option>
-            <option value="processing">Sedang Diproses</option>
-            <option value="shipped">Sedang Dikirim</option>
-            <option value="completed">Selesai</option>
-            <option value="failed">Gagal / Kadaluarsa</option>
-            <option value="cancelled">Dibatalkan</option>
-          </select>
+            <SelectTrigger className="pl-10 h-[42px]">
+              <SelectValue placeholder="Pilih Status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Semua Status</SelectItem>
+              <SelectItem value="pending">Menunggu Pembayaran</SelectItem>
+              <SelectItem value="paid">Sudah Dibayar</SelectItem>
+              <SelectItem value="processing">Sedang Diproses</SelectItem>
+              <SelectItem value="shipped">Sedang Dikirim</SelectItem>
+              <SelectItem value="completed">Selesai</SelectItem>
+              <SelectItem value="failed">Gagal / Kadaluarsa</SelectItem>
+              <SelectItem value="cancelled">Dibatalkan</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
       </div>
 
@@ -469,17 +482,18 @@ export default function OrdersManager() {
                       <div className="font-bold text-brand-green text-lg">{formatRupiah(order.total_amount)}</div>
                     </div>
                     {/* Invoice Sent Status Badge */}
-                    <div 
-                      className={`text-[10px] px-2 py-0.5 rounded-full border ${order.invoice_sent ? 'bg-brand-green/10 text-brand-green border-brand-green/20' : 'bg-gray-100 text-gray-500 border-gray-200'} flex items-center gap-1`}
-                      onClick={(e) => { e.stopPropagation(); toggleInvoiceSent(order.id, order.invoice_sent); }}
-                      title="Klik untuk mengubah status pengiriman invoice"
-                    >
-                      {order.invoice_sent ? (
-                        <><Check size={10} /> WA Terkirim</>
-                      ) : (
-                        <><Clock size={10} /> Belum Kirim WA</>
-                      )}
-                    </div>
+                    <Tooltip content="Klik untuk mengubah status pengiriman invoice">
+                      <div 
+                        className={`text-[10px] px-2 py-0.5 rounded-full border cursor-pointer ${order.invoice_sent ? 'bg-brand-green/10 text-brand-green border-brand-green/20' : 'bg-gray-100 text-gray-500 border-gray-200'} flex items-center gap-1 hover:bg-gray-200 transition-colors`}
+                        onClick={(e) => { e.stopPropagation(); toggleInvoiceSent(order.id, order.invoice_sent); }}
+                      >
+                        {order.invoice_sent ? (
+                          <><Check size={10} /> WA Terkirim</>
+                        ) : (
+                          <><XCircle size={10} /> WA Belum Terkirim</>
+                        )}
+                      </div>
+                    </Tooltip>
                   </div>
                   <button className="text-gray-400 hover:text-brand-green transition-colors">
                     {expandedOrders.includes(order.id) ? <ChevronUp size={24} /> : <ChevronDown size={24} />}
@@ -729,25 +743,27 @@ export default function OrdersManager() {
                 Menampilkan {(currentPage - 1) * ITEMS_PER_PAGE + 1} - {Math.min(currentPage * ITEMS_PER_PAGE, totalCount)} dari {totalCount} pesanan
               </span>
               <div className="flex gap-2">
-                <button
-                  onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-                  disabled={currentPage === 1}
-                  className="p-2 border border-gray-200 rounded-lg text-gray-600 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center"
-                  title="Halaman Sebelumnya"
-                >
-                  <ChevronLeft size={20} />
-                </button>
+                <Tooltip content="Halaman Sebelumnya">
+                  <button
+                    onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                    disabled={currentPage === 1}
+                    className="p-2 border border-gray-200 rounded-lg text-gray-600 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center"
+                  >
+                    <ChevronLeft size={20} />
+                  </button>
+                </Tooltip>
                 <div className="flex items-center px-4 font-medium text-sm text-gray-700 bg-gray-50 border border-gray-200 rounded-lg">
                   {currentPage} / {totalPages}
                 </div>
-                <button
-                  onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-                  disabled={currentPage === totalPages}
-                  className="p-2 border border-gray-200 rounded-lg text-gray-600 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center"
-                  title="Halaman Selanjutnya"
-                >
-                  <ChevronRight size={20} />
-                </button>
+                <Tooltip content="Halaman Selanjutnya">
+                  <button
+                    onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                    disabled={currentPage === totalPages}
+                    className="p-2 border border-gray-200 rounded-lg text-gray-600 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center"
+                  >
+                    <ChevronRight size={20} />
+                  </button>
+                </Tooltip>
               </div>
             </div>
           )}

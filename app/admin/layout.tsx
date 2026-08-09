@@ -6,6 +6,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { LogOut, Home, User } from "lucide-react";
 import { createClient } from "@/utils/supabase/client";
 import RealtimeOrderNotification from "./components/RealtimeOrderNotification";
+import { logAdminActivity } from "./actions/logger";
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -30,6 +31,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   }
 
   const handleLogout = async () => {
+    await logAdminActivity("LOGOUT", "Admin telah keluar (logout) dari sistem");
     const supabase = createClient();
     await supabase.auth.signOut();
     router.push("/admin/login");
