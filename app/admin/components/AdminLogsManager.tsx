@@ -3,7 +3,34 @@
 import { useState, useEffect, useCallback } from "react";
 import { createClient } from "@/utils/supabase/client";
 import { sanitizeFilterValue } from "@/utils/sanitize";
-import { Loader2, Search, ChevronLeft, ChevronRight, Activity, Clock, ShieldAlert, CheckCircle, Package, User, PenTool } from "lucide-react";
+import { 
+  Loader2, 
+  Search, 
+  ChevronLeft, 
+  ChevronRight, 
+  Activity, 
+  Clock, 
+  ShieldAlert, 
+  Package, 
+  PackagePlus,
+  PackageMinus,
+  User, 
+  UserPlus,
+  UserMinus,
+  KeyRound,
+  FileText,
+  FilePlus,
+  FileEdit,
+  FileMinus,
+  ShoppingBag,
+  Tag,
+  FolderPlus,
+  FolderMinus,
+  Phone,
+  Edit3,
+  Trash2,
+  PlusCircle
+} from "lucide-react";
 import { Skeleton } from "@/app/components/ui/Skeleton";
 
 type AdminLog = {
@@ -69,17 +96,48 @@ export default function AdminLogsManager() {
   const totalPages = Math.ceil(totalCount / ITEMS_PER_PAGE);
 
   const getActionIcon = (type: string) => {
-    if (type.includes("PRODUCT")) return <Package size={16} />;
-    if (type.includes("ADMIN") || type.includes("PASSWORD")) return <User size={16} />;
-    if (type.includes("ORDER")) return <CheckCircle size={16} />;
-    if (type.includes("CATEGORY")) return <PenTool size={16} />;
-    return <Activity size={16} />;
+    switch (type) {
+      case "CREATE_PRODUCT":
+        return <PackagePlus size={15} className="shrink-0" />;
+      case "UPDATE_PRODUCT":
+        return <Package size={15} className="shrink-0" />;
+      case "DELETE_PRODUCT":
+        return <PackageMinus size={15} className="shrink-0" />;
+      case "CREATE_CATEGORY":
+        return <FolderPlus size={15} className="shrink-0" />;
+      case "DELETE_CATEGORY":
+        return <FolderMinus size={15} className="shrink-0" />;
+      case "UPDATE_ORDER":
+        return <ShoppingBag size={15} className="shrink-0" />;
+      case "CREATE_ARTICLE":
+        return <FilePlus size={15} className="shrink-0" />;
+      case "UPDATE_ARTICLE":
+        return <FileEdit size={15} className="shrink-0" />;
+      case "DELETE_ARTICLE":
+        return <FileMinus size={15} className="shrink-0" />;
+      case "CREATE_ADMIN":
+        return <UserPlus size={15} className="shrink-0" />;
+      case "DELETE_ADMIN":
+        return <UserMinus size={15} className="shrink-0" />;
+      case "UPDATE_PASSWORD":
+        return <KeyRound size={15} className="shrink-0" />;
+      case "UPDATE_CONTACT":
+        return <Phone size={15} className="shrink-0" />;
+      default:
+        if (type.includes("DELETE")) return <Trash2 size={15} className="shrink-0" />;
+        if (type.includes("CREATE")) return <PlusCircle size={15} className="shrink-0" />;
+        if (type.includes("UPDATE")) return <Edit3 size={15} className="shrink-0" />;
+        return <Activity size={15} className="shrink-0" />;
+    }
   };
 
   const getActionColor = (type: string) => {
-    if (type.includes("DELETE")) return "bg-red-50 text-red-700 border-red-200";
-    if (type.includes("CREATE")) return "bg-green-50 text-green-700 border-green-200";
-    if (type.includes("UPDATE")) return "bg-orange-50 text-orange-700 border-orange-200";
+    if (type.includes("DELETE")) return "bg-red-50 text-red-700 border-red-200/80";
+    if (type.includes("CREATE")) return "bg-emerald-50 text-emerald-700 border-emerald-200/80";
+    if (type.includes("PASSWORD")) return "bg-purple-50 text-purple-700 border-purple-200/80";
+    if (type.includes("ORDER")) return "bg-blue-50 text-blue-700 border-blue-200/80";
+    if (type.includes("CONTACT")) return "bg-cyan-50 text-cyan-700 border-cyan-200/80";
+    if (type.includes("UPDATE")) return "bg-amber-50 text-amber-700 border-amber-200/80";
     return "bg-gray-50 text-gray-700 border-gray-200";
   };
 

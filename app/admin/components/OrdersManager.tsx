@@ -163,9 +163,16 @@ export default function OrdersManager() {
     }
     
     if (debouncedSearch) {
-      // Search by customer name OR ID (sanitize to prevent filter injection)
+      // Search by Order ID (id_text), customer name, phone, email, tracking number, or full UUID
       const sanitized = sanitizeFilterValue(debouncedSearch);
-      query = query.or(`customer_name.ilike.%${sanitized}%,id.ilike.%${sanitized}%`);
+      const trimmed = debouncedSearch.trim();
+      const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(trimmed);
+      
+      if (isUUID) {
+        query = query.or(`id.eq.${trimmed},id_text.ilike.%${sanitized}%,customer_name.ilike.%${sanitized}%,customer_phone.ilike.%${sanitized}%,customer_email.ilike.%${sanitized}%,tracking_number.ilike.%${sanitized}%`);
+      } else {
+        query = query.or(`id_text.ilike.%${sanitized}%,customer_name.ilike.%${sanitized}%,customer_phone.ilike.%${sanitized}%,customer_email.ilike.%${sanitized}%,tracking_number.ilike.%${sanitized}%`);
+      }
     }
     
     // Apply pagination
@@ -173,7 +180,27 @@ export default function OrdersManager() {
     const to = from + ITEMS_PER_PAGE - 1;
     query = query.range(from, to);
 
-    const { data, count, error } = await query;
+    let { data, count, error } = await query;
+    
+    // Graceful fallback if id_text column hasn't been migrated yet in Supabase
+    if (error && (error.message?.includes('id_text') || error.code === '42703')) {
+      let fallbackQuery = supabase.from("orders").select("*", { count: 'exact' }).order("created_at", { ascending: false });
+      if (statusFilter !== "all") {
+        fallbackQuery = fallbackQuery.eq('status', statusFilter);
+      }
+      const sanitized = sanitizeFilterValue(debouncedSearch);
+      const trimmed = debouncedSearch.trim();
+      const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(trimmed);
+      if (isUUID) {
+        fallbackQuery = fallbackQuery.or(`id.eq.${trimmed},customer_name.ilike.%${sanitized}%,customer_phone.ilike.%${sanitized}%,customer_email.ilike.%${sanitized}%,tracking_number.ilike.%${sanitized}%`);
+      } else {
+        fallbackQuery = fallbackQuery.or(`customer_name.ilike.%${sanitized}%,customer_phone.ilike.%${sanitized}%,customer_email.ilike.%${sanitized}%,tracking_number.ilike.%${sanitized}%`);
+      }
+      const res = await fallbackQuery.range(from, to);
+      data = res.data;
+      count = res.count;
+      error = res.error;
+    }
     
     if (error) {
       console.error("Error fetching orders:", error);
@@ -356,7 +383,7 @@ export default function OrdersManager() {
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
           <input
             type="text"
-            placeholder="Cari nama pelanggan atau ID..."
+            placeholder="Cari nama, email, no. telepon, resi, atau ID..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-green"
