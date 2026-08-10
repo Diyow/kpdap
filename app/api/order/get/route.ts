@@ -41,7 +41,14 @@ export async function POST(request: Request) {
 
     const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
 
-    let query = supabaseAdmin.from('orders').select('*').eq('id', order_id);
+    const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(order_id.trim());
+    let query;
+    if (isUUID) {
+      query = supabaseAdmin.from('orders').select('*').eq('id', order_id.trim());
+    } else {
+      const sanitizedId = sanitizeFilterValue(order_id.trim());
+      query = supabaseAdmin.from('orders').select('*').ilike('id_text', `${sanitizedId}%`);
+    }
 
     // If contact is provided (from track-order page), require a match
     if (contact) {
@@ -80,6 +87,7 @@ export async function POST(request: Request) {
             const midtransData = await midtransRes.json();
             const transaction_status = midtransData.transaction_status;
             const fraud_status = midtransData.fraud_status;
+            const payment_type = midtransData.payment_type;
 
             let newStatus = 'pending';
             
@@ -101,8 +109,12 @@ export async function POST(request: Request) {
 
             if (newStatus !== 'pending') {
               // Update database
-              await supabaseAdmin.from('orders').update({ status: newStatus }).eq('id', order_id);
+              const updateData: any = { status: newStatus };
+              if (payment_type) updateData.payment_method = payment_type;
+              
+              await supabaseAdmin.from('orders').update(updateData).eq('id', order_id);
               data.status = newStatus;
+              if (payment_type) data.payment_method = payment_type;
 
               // Restore stock if it failed
               if (newStatus === 'failed') {

@@ -9,5 +9,5 @@
  * The wrapping `%` for ilike patterns should be added AFTER calling this function.
  */
 export function sanitizeFilterValue(input: string): string {
-  return input.replace(/[,%.()\\]/g, '').trim();
+  return input.replace(/[,%()\\]/g, '').trim();
 }

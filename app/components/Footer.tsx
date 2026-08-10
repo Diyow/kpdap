@@ -34,6 +34,7 @@ export default async function Footer() {
                 src="/logo.webp"
                 alt="KPDAP Logo"
                 fill
+                sizes="48px"
                 className="object-contain p-1.5"
               />
             </div>

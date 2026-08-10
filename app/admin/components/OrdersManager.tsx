@@ -8,6 +8,7 @@ import { Loader2, Search, Filter, Send, MessageCircle, FileText, CheckCircle, Cl
 import { Skeleton } from "@/app/components/ui/Skeleton";
 import ConfirmModal from "@/app/components/ConfirmModal";
 import { Tooltip } from "@/app/components/ui/Tooltip";
+import { Switch } from "@/app/components/ui/Switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/app/components/ui/Select";
 
 type Order = {
@@ -112,7 +113,7 @@ export default function OrdersManager() {
       }
     }
 
-    const updateData: any = { status: newStatus };
+    const updateData: any = { status: newStatus, invoice_sent: false };
     if (newTracking !== undefined) {
       updateData.tracking_number = newTracking;
     }
@@ -125,7 +126,12 @@ export default function OrdersManager() {
     if (error) {
       toast.error("Gagal mengupdate status: " + error.message);
     } else {
-      setOrders(prev => prev.map(o => o.id === orderId ? { ...o, status: newStatus, tracking_number: newTracking ?? o.tracking_number } : o));
+      setOrders(prev => prev.map(o => o.id === orderId ? { 
+        ...o, 
+        status: newStatus, 
+        tracking_number: newTracking ?? o.tracking_number,
+        invoice_sent: false 
+      } : o));
       if (newTracking !== undefined) {
         setEditingTrackingFor(null);
       }
@@ -249,11 +255,11 @@ export default function OrdersManager() {
   const getStatusColor = (status: string) => {
     switch(status) {
       case 'completed': return 'bg-emerald-100 text-emerald-800 border-emerald-200';
-      case 'paid': return 'bg-green-100 text-green-800 border-green-200';
-      case 'processing': return 'bg-emerald-50 text-emerald-700 border-emerald-200';
-      case 'shipped': return 'bg-brand-green/10 text-brand-green border-brand-green/20';
-      case 'pending': return 'bg-orange-50 text-orange-700 border-orange-200';
-      case 'failed': case 'expired': case 'cancelled': return 'bg-red-100 text-red-800 border-red-200';
+      case 'paid': return 'bg-green-50 text-green-700 border-green-200';
+      case 'processing': return 'bg-blue-50 text-blue-700 border-blue-200';
+      case 'shipped': return 'bg-teal-50 text-teal-700 border-teal-200';
+      case 'pending': return 'bg-yellow-50 text-yellow-700 border-yellow-200';
+      case 'failed': case 'expired': case 'cancelled': return 'bg-red-50 text-red-700 border-red-200';
       default: return 'bg-gray-100 text-gray-800 border-gray-200';
     }
   };
@@ -289,14 +295,14 @@ export default function OrdersManager() {
       case 'pending':
         return `*PENGINGAT PEMBAYARAN - KPDAP*\n\n` + baseHeader +
           `Kami mengingatkan bahwa pesanan Anda belum dibayar. Mohon segera selesaikan pembayaran sebelum batas waktu berakhir agar pesanan tidak dibatalkan otomatis oleh sistem.\n\n` +
-          `Klik link berikut untuk melanjutkan pembayaran:\n${trackUrl}\n\nTerima kasih!`;
+          `Gunakan ID Pesanan *${orderIdShort}* atau klik link berikut untuk melanjutkan pembayaran:\n${trackUrl}\n\nTerima kasih!`;
       
       case 'shipped':
         return `*INFO PENGIRIMAN - KPDAP*\n\n` + baseHeader +
           `Pesanan Anda sedang dalam perjalanan!\n\n` +
           `*Kurir:* ${order.courier || '-'}\n` +
           `*Nomor Resi:* ${order.tracking_number || '-'}\n\n` +
-          `Pantau status pesanan Anda secara live melalui link berikut:\n${trackUrl}\n\nTerima kasih telah berbelanja!`;
+          `Pantau status pesanan Anda secara live menggunakan ID Pesanan *${orderIdShort}* atau klik link berikut:\n${trackUrl}\n\nTerima kasih telah berbelanja!`;
 
       case 'completed':
         return `*PESANAN SELESAI - KPDAP*\n\n` + baseHeader +
@@ -320,14 +326,21 @@ export default function OrdersManager() {
           `*Metode Pembayaran:* ${order.payment_method || '-'}\n` +
           `*Total: ${formatRupiah(order.total_amount)}*\n\n` +
           `*Alamat Pengiriman:*\n${order.shipping_address}\n\n` +
-          `Pesanan Anda sedang kami proses. Pantau status pesanan Anda secara live melalui link berikut:\n${trackUrl}\n\nTerima kasih!`;
+          `Pesanan Anda sedang kami proses. Pantau status pesanan Anda secara live menggunakan ID Pesanan *${orderIdShort}* atau klik link berikut:\n${trackUrl}\n\nTerima kasih!`;
     }
   };
 
   const sendWhatsAppInvoice = (order: Order) => {
     const message = getInvoiceMessage(order);
     const encodedMessage = encodeURIComponent(message);
-    const whatsappUrl = `https://wa.me/${order.customer_phone.replace('+', '')}?text=${encodedMessage}`;
+    
+    // Format phone number for WhatsApp (e.g. 0812... -> 62812...)
+    let formattedPhone = order.customer_phone.replace(/\D/g, ''); // Remove all non-digits
+    if (formattedPhone.startsWith('0')) {
+      formattedPhone = '62' + formattedPhone.substring(1);
+    }
+    
+    const whatsappUrl = `https://wa.me/${formattedPhone}?text=${encodedMessage}`;
     window.open(whatsappUrl, '_blank');
     
     // Auto-check the invoice_sent
@@ -693,17 +706,15 @@ export default function OrdersManager() {
                   <div className="pt-4 border-t border-gray-200 mt-6">
                     <div className="flex items-center justify-between mb-2">
                       <h4 className="font-bold text-gray-700 text-sm">Pesan Invoice WhatsApp</h4>
-                      <label className="flex items-center gap-2 text-sm cursor-pointer hover:opacity-80 transition-opacity">
-                        <input 
-                          type="checkbox" 
-                          checked={order.invoice_sent}
-                          onChange={(e) => toggleInvoiceSent(order.id, !e.target.checked)}
-                          className="w-4 h-4 text-brand-green border-gray-300 rounded focus:ring-brand-green cursor-pointer"
-                        />
-                        <span className={order.invoice_sent ? "text-brand-green font-semibold" : "text-gray-500"}>
+                      <div className="flex items-center gap-3">
+                        <span className={`text-sm ${order.invoice_sent ? "text-brand-green font-semibold" : "text-gray-500"}`}>
                           {order.invoice_sent ? "Invoice Sudah Dikirim" : "Tandai Sudah Dikirim"}
                         </span>
-                      </label>
+                        <Switch 
+                          checked={order.invoice_sent}
+                          onCheckedChange={() => toggleInvoiceSent(order.id, order.invoice_sent)}
+                        />
+                      </div>
                     </div>
                     <p className="text-xs text-gray-500 mb-3">Pesan ini sudah memuat link tracking otomatis untuk pembeli.</p>
                     <textarea 

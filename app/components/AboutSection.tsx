@@ -8,7 +8,7 @@ export default function AboutSection() {
         {/* Image Side */}
         <div className="w-full md:w-1/2 relative rounded-2xl overflow-hidden shadow-lg">
           <img
-            src="about.webp"
+            src="/about.webp"
             alt="Petani Kopi"
             className="w-full h-[300px] sm:h-[400px] lg:h-[500px] object-cover"
           />

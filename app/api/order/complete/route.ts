@@ -6,10 +6,10 @@ export const runtime = 'edge';
 
 export async function POST(request: Request) {
   try {
-    const { order_id, completion_token } = await request.json();
+    const { order_id } = await request.json();
     
-    if (!order_id || !completion_token) {
-      return NextResponse.json({ error: 'Order ID and Completion Token are required' }, { status: 400 });
+    if (!order_id) {
+      return NextResponse.json({ error: 'Order ID is required' }, { status: 400 });
     }
 
     // Initialize Supabase with Service Role Key to bypass RLS
@@ -23,12 +23,11 @@ export async function POST(request: Request) {
 
     const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
 
-    // Update the order status to completed only if token matches
+    // Update the order status to completed
     const { data, error } = await supabaseAdmin
       .from('orders')
       .update({ status: 'completed' })
       .eq('id', order_id)
-      .eq('completion_token', completion_token)
       .eq('status', 'shipped') // Only allow completing if it's currently shipped
       .select('id');
 

@@ -146,8 +146,8 @@ function CheckoutSuccessContent() {
         };
       case 'shipped':
         return {
-          icon: <Truck className="text-indigo-500 w-12 h-12" />,
-          bg: "bg-indigo-100",
+          icon: <Truck className="text-teal-600 w-12 h-12" />,
+          bg: "bg-teal-100",
           title: "Pesanan Sedang Dikirim",
           desc: "Pesanan Anda sedang dalam perjalanan ke alamat tujuan. Silakan cek nomor resi pengiriman."
         };
@@ -239,7 +239,7 @@ function CheckoutSuccessContent() {
                       order.status === 'completed' ? 'bg-emerald-100 text-emerald-800' :
                       order.status === 'paid' ? 'bg-green-100 text-green-800' : 
                       order.status === 'processing' ? 'bg-blue-100 text-blue-800' : 
-                      order.status === 'shipped' ? 'bg-indigo-100 text-indigo-800' : 
+                      order.status === 'shipped' ? 'bg-teal-100 text-teal-800 border border-teal-200' : 
                       ['failed', 'expired', 'cancelled'].includes(order.status) ? 'bg-red-100 text-red-800' : 
                       'bg-yellow-100 text-yellow-800'
                     }`}>
@@ -263,9 +263,9 @@ function CheckoutSuccessContent() {
                   <span className="font-medium text-gray-800 capitalize">{order.payment_method || '-'}</span>
                 </div>
                 {order.tracking_number && (
-                  <div className="col-span-1 md:col-span-2 mt-4 p-4 bg-indigo-50 rounded-xl border border-indigo-100">
-                    <span className="block text-indigo-800 font-bold mb-2">Nomor Resi / Pelacakan</span>
-                    <span className="font-mono text-lg text-indigo-900 tracking-wider bg-white px-4 py-2 rounded-lg inline-block border border-indigo-200">
+                  <div className="col-span-1 md:col-span-2 mt-4 p-4 bg-teal-50 rounded-xl border border-teal-100">
+                    <span className="block text-teal-800 font-bold mb-2">Nomor Resi / Pelacakan</span>
+                    <span className="font-mono text-lg text-teal-900 tracking-wider bg-white px-4 py-2 rounded-lg inline-block border border-teal-200 shadow-sm">
                       {order.tracking_number}
                     </span>
                   </div>

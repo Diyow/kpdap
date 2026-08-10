@@ -272,11 +272,13 @@ export default function CheckoutPage() {
                 <form onSubmit={handleCheckout} className="space-y-4">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Nama Lengkap *</label>
+                      <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">Nama Lengkap *</label>
                       <input 
+                        id="name"
                         required
                         type="text" 
                         name="name"
+                        autoComplete="name"
                         value={formData.name}
                         onChange={handleInputChange}
                         className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-green" 
@@ -284,11 +286,13 @@ export default function CheckoutPage() {
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Nomor WhatsApp *</label>
+                      <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-1">Nomor WhatsApp *</label>
                       <input 
+                        id="phone"
                         required
                         type="tel" 
                         name="phone"
+                        autoComplete="tel"
                         value={formData.phone}
                         onChange={handleInputChange}
                         className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-green" 
@@ -298,10 +302,12 @@ export default function CheckoutPage() {
                   </div>
                   
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Alamat Email (Opsional)</label>
+                    <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">Alamat Email (Opsional)</label>
                     <input 
+                      id="email"
                       type="email" 
                       name="email"
+                      autoComplete="email"
                       value={formData.email}
                       onChange={handleInputChange}
                       className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-green" 
@@ -311,9 +317,12 @@ export default function CheckoutPage() {
                   
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Provinsi *</label>
+                      <label htmlFor="province" className="block text-sm font-medium text-gray-700 mb-1">Provinsi *</label>
                       <select 
+                        id="province"
+                        name="province"
                         required
+                        autoComplete="address-level1"
                         value={selectedProvince}
                         onChange={(e) => setSelectedProvince(e.target.value)}
                         className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-green bg-white"
@@ -325,9 +334,12 @@ export default function CheckoutPage() {
                       </select>
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Kota/Kabupaten *</label>
+                      <label htmlFor="city" className="block text-sm font-medium text-gray-700 mb-1">Kota/Kabupaten *</label>
                       <select 
+                        id="city"
+                        name="city"
                         required
+                        autoComplete="address-level2"
                         value={selectedCity}
                         onChange={(e) => setSelectedCity(e.target.value)}
                         disabled={!selectedProvince || cities.length === 0}
@@ -343,8 +355,10 @@ export default function CheckoutPage() {
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Pilih Kurir *</label>
+                      <label htmlFor="courier" className="block text-sm font-medium text-gray-700 mb-1">Pilih Kurir *</label>
                       <select 
+                        id="courier"
+                        name="courier"
                         required
                         value={selectedCourier}
                         onChange={(e) => setSelectedCourier(e.target.value)}
@@ -358,8 +372,10 @@ export default function CheckoutPage() {
                       </select>
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Layanan Pengiriman *</label>
+                      <label htmlFor="service" className="block text-sm font-medium text-gray-700 mb-1">Layanan Pengiriman *</label>
                       <select 
+                        id="service"
+                        name="service"
                         required
                         value={selectedService?.service || ""}
                         onChange={(e) => {
@@ -380,10 +396,12 @@ export default function CheckoutPage() {
                   </div>
                   
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Alamat Lengkap Pengiriman *</label>
+                    <label htmlFor="address" className="block text-sm font-medium text-gray-700 mb-1">Alamat Lengkap Pengiriman *</label>
                     <textarea 
+                      id="address"
                       required
                       name="address"
+                      autoComplete="street-address"
                       value={formData.address}
                       onChange={handleInputChange}
                       rows={2}
@@ -393,8 +411,9 @@ export default function CheckoutPage() {
                   </div>
                   
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Catatan Tambahan (Opsional)</label>
+                    <label htmlFor="notes" className="block text-sm font-medium text-gray-700 mb-1">Catatan Tambahan (Opsional)</label>
                     <textarea 
+                      id="notes"
                       name="notes"
                       value={formData.notes}
                       onChange={handleInputChange}

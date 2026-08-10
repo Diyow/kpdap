@@ -55,8 +55,10 @@ export default function TrackOrderPage() {
 
           <form onSubmit={handleSearch} className="space-y-5 text-left">
             <div>
-              <label className="block text-sm font-bold text-brand-text mb-1">ID Pesanan</label>
+              <label htmlFor="orderId" className="block text-sm font-bold text-brand-text mb-1">ID Pesanan</label>
               <input
+                id="orderId"
+                name="orderId"
                 type="text"
                 placeholder="Contoh: b906703d-..."
                 value={orderId}
@@ -67,9 +69,12 @@ export default function TrackOrderPage() {
             </div>
             
             <div>
-              <label className="block text-sm font-bold text-brand-text mb-1">Nomor WhatsApp / Email</label>
+              <label htmlFor="contact" className="block text-sm font-bold text-brand-text mb-1">Nomor WhatsApp / Email</label>
               <input
+                id="contact"
+                name="contact"
                 type="text"
+                autoComplete="email tel"
                 placeholder="Nomor WA atau Email saat checkout"
                 value={contact}
                 onChange={(e) => setContact(e.target.value)}
