@@ -29,7 +29,7 @@ export default function AdminLogin() {
       setLoading(false);
     } else {
       await logAdminActivity("LOGIN", "Admin telah masuk (login) ke sistem");
-      router.push("/admin");
+      window.location.href = "/admin";
     }
   };
 

@@ -3,7 +3,7 @@ import React from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { LogOut, Home, User } from "lucide-react";
+import { LogOut, Home, User, Loader2 } from "lucide-react";
 import { createClient } from "@/utils/supabase/client";
 import RealtimeOrderNotification from "./components/RealtimeOrderNotification";
 import { logAdminActivity } from "./actions/logger";
@@ -12,6 +12,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const pathname = usePathname();
   const router = useRouter();
   const [userEmail, setUserEmail] = React.useState<string | null>(null);
+  const [isLoggingOut, setIsLoggingOut] = React.useState(false);
 
   React.useEffect(() => {
     const fetchUser = async () => {
@@ -31,10 +32,16 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   }
 
   const handleLogout = async () => {
-    await logAdminActivity("LOGOUT", "Admin telah keluar (logout) dari sistem");
-    const supabase = createClient();
-    await supabase.auth.signOut();
-    router.push("/admin/login");
+    setIsLoggingOut(true);
+    try {
+      await logAdminActivity("LOGOUT", "Admin telah keluar (logout) dari sistem");
+      const supabase = createClient();
+      await supabase.auth.signOut();
+      window.location.href = "/admin/login";
+    } catch (error) {
+      console.error("Logout error:", error);
+      setIsLoggingOut(false);
+    }
   };
 
   return (
@@ -74,10 +81,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             
             <button
               onClick={handleLogout}
-              className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-red-600 hover:text-white hover:bg-red-500 rounded-lg transition-colors"
+              disabled={isLoggingOut}
+              className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-red-600 hover:text-white hover:bg-red-500 rounded-lg transition-colors disabled:opacity-50"
             >
-              <LogOut size={16} />
-              <span className="hidden sm:inline">Keluar</span>
+              {isLoggingOut ? <Loader2 size={16} className="animate-spin" /> : <LogOut size={16} />}
+              <span className="hidden sm:inline">{isLoggingOut ? "Keluar..." : "Keluar"}</span>
             </button>
           </div>
         </div>

@@ -50,6 +50,13 @@ export async function middleware(request: NextRequest) {
       url.pathname = '/';
       return NextResponse.redirect(url);
     }
+  } else if (request.nextUrl.pathname.startsWith('/admin/login')) {
+    // If they are already logged in as an admin and try to access the login page, redirect to dashboard
+    if (user && user.app_metadata?.role === 'admin') {
+      const url = request.nextUrl.clone();
+      url.pathname = '/admin';
+      return NextResponse.redirect(url);
+    }
   }
 
   return supabaseResponse;

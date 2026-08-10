@@ -199,8 +199,7 @@ export default function AdminLogsManager() {
                 <SelectItem value="ADMIN">Admin</SelectItem>
                 <SelectItem value="PASSWORD">Password</SelectItem>
                 <SelectItem value="CONTACT">Kontak</SelectItem>
-                <SelectItem value="LOGIN">Login</SelectItem>
-                <SelectItem value="LOGOUT">Logout</SelectItem>
+                <SelectItem value="LOG">Autentikasi (Login/Logout)</SelectItem>
               </SelectContent>
             </Select>
           </div>

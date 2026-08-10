@@ -289,10 +289,10 @@ export default function ProductForm({ initialData, onSave, onCancel }: ProductFo
       </h2>
       <form onSubmit={handleSave} className="space-y-6">
         <Tabs defaultValue="general" className="w-full">
-          <TabsList className="mb-6 w-full grid grid-cols-3 bg-gray-100/50 p-1.5 rounded-xl">
-            <TabsTrigger value="general" className="py-2.5 text-sm">Informasi Dasar</TabsTrigger>
-            <TabsTrigger value="price_stock" className="py-2.5 text-sm">Harga & Stok</TabsTrigger>
-            <TabsTrigger value="media_vars" className="py-2.5 text-sm">Media & Variasi</TabsTrigger>
+          <TabsList className="mb-6 w-full flex overflow-x-auto sm:grid sm:grid-cols-3 bg-gray-100/50 p-1.5 rounded-xl justify-start">
+            <TabsTrigger value="general" className="py-2.5 text-sm flex-shrink-0">Informasi Dasar</TabsTrigger>
+            <TabsTrigger value="price_stock" className="py-2.5 text-sm flex-shrink-0">Harga & Stok</TabsTrigger>
+            <TabsTrigger value="media_vars" className="py-2.5 text-sm flex-shrink-0">Media & Variasi</TabsTrigger>
           </TabsList>
           
           <TabsContent value="general" className="space-y-5 animate-in fade-in slide-in-from-bottom-2 duration-300">
