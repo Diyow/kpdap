@@ -17,11 +17,6 @@ export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState("dashboard");
   const [isMounted, setIsMounted] = useState(false);
 
-  // Navigation scroll state
-  const [showLeftArrow, setShowLeftArrow] = useState(false);
-  const [showRightArrow, setShowRightArrow] = useState(true);
-  const navRef = useRef<HTMLElement>(null);
-
   useEffect(() => {
     const savedTab = localStorage.getItem("kpdap_admin_tab");
     if (savedTab) {
@@ -29,22 +24,6 @@ export default function AdminDashboard() {
     }
     setIsMounted(true);
   }, []);
-
-  const checkScroll = () => {
-    if (navRef.current) {
-      const { scrollLeft, scrollWidth, clientWidth } = navRef.current;
-      setShowLeftArrow(scrollLeft > 5);
-      setShowRightArrow(Math.ceil(scrollLeft + clientWidth) < scrollWidth - 5);
-    }
-  };
-
-  useEffect(() => {
-    if (isMounted) {
-      checkScroll();
-      window.addEventListener("resize", checkScroll);
-      return () => window.removeEventListener("resize", checkScroll);
-    }
-  }, [isMounted]);
 
   const handleTabChange = (tabId: string) => {
     setActiveTab(tabId);
@@ -88,17 +67,10 @@ export default function AdminDashboard() {
   return (
     <div className="flex flex-col md:flex-row gap-8 pb-16">
       {/* Sidebar Navigation */}
-      <aside className="w-full md:w-64 shrink-0 md:sticky md:top-24 h-max z-10 bg-brand-lightbg md:bg-transparent -mx-4 md:mx-0">
-        <div className="flex items-center w-full">
-          {/* Left Arrow Indicator */}
-          <div className={`w-8 shrink-0 flex justify-center text-gray-400 transition-opacity duration-300 md:hidden ${showLeftArrow ? 'opacity-100 animate-pulse' : 'opacity-0'}`}>
-            <ChevronLeft size={20} />
-          </div>
-
+      <aside className="w-full md:w-56 shrink-0 md:sticky md:top-[180px] lg:top-[188px] h-max z-10 -mx-4 md:mx-0 border-b border-gray-100 md:border-0 mb-4 md:mb-0">
+        <div className="flex items-center w-full px-4 md:px-0 pt-2 pb-3 md:py-0">
           <nav
-            ref={navRef}
-            onScroll={checkScroll}
-            className="flex-1 min-w-0 flex md:flex-col gap-2 overflow-x-auto md:overflow-visible pb-2 md:pb-0 scrollbar-hide snap-x relative z-10"
+            className="flex-1 min-w-0 flex md:flex-col gap-1.5 overflow-x-auto md:overflow-visible pb-1 md:pb-0 scrollbar-hide snap-x snap-mandatory relative z-10 [mask-image:linear-gradient(to_right,transparent,black_5%,black_95%,transparent)] md:[mask-image:none]"
           >
             {navItems.map((item) => {
               const Icon = item.icon;
@@ -107,29 +79,25 @@ export default function AdminDashboard() {
                 <button
                   key={item.id}
                   onClick={() => handleTabChange(item.id)}
-                  className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-colors text-left whitespace-nowrap snap-center shrink-0 md:shrink ${isActive
-                      ? "bg-brand-green text-white shadow-md"
-                      : "text-gray-600 hover:bg-white hover:text-brand-green"
+                  className={`group flex items-center gap-3 px-3.5 py-2.5 rounded-full md:rounded-lg text-sm transition-all duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] active:scale-[0.97] text-left whitespace-nowrap snap-center shrink-0 md:shrink ${isActive
+                      ? "bg-brand-green/[0.08] text-brand-green font-semibold"
+                      : "text-gray-500 hover:bg-gray-50 hover:text-gray-900 font-medium"
                     }`}
                 >
-                  <Icon size={20} />
+                  <Icon size={18} className={`transition-colors duration-200 ${isActive ? "text-brand-green" : "text-gray-400 group-hover:text-gray-600"}`} />
                   {item.label}
                 </button>
               );
             })}
           </nav>
-
-          {/* Right Arrow Indicator */}
-          <div className={`w-8 shrink-0 flex justify-center text-gray-400 transition-opacity duration-300 md:hidden ${showRightArrow ? 'opacity-100 animate-pulse' : 'opacity-0'}`}>
-            <ChevronRight size={20} />
-          </div>
         </div>
       </aside>
 
       {/* Main Content Area */}
-      <div className="flex-1 min-w-0">
+      <div className="flex-1 min-w-0 relative">
+        <div className="hidden md:block absolute top-0 bottom-0 -left-4 w-px bg-gray-200/70"></div>
         {!isMounted ? (
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 min-h-[400px] flex items-center justify-center">
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 min-h-[400px] flex items-center justify-center relative z-10">
             <div className="w-8 h-8 border-4 border-brand-green/20 border-t-brand-green rounded-full animate-spin"></div>
           </div>
         ) : (

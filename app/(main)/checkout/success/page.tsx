@@ -264,10 +264,15 @@ function CheckoutSuccessContent() {
                 </div>
                 {order.tracking_number && (
                   <div className="col-span-1 md:col-span-2 mt-4 p-4 bg-teal-50 rounded-xl border border-teal-100">
-                    <span className="block text-teal-800 font-bold mb-2">Nomor Resi / Pelacakan</span>
+                    <span className="block text-teal-800 font-bold mb-2">Nomor Resi / Pelacakan {order.courier ? `(${order.courier})` : ''}</span>
                     <span className="font-mono text-lg text-teal-900 tracking-wider bg-white px-4 py-2 rounded-lg inline-block border border-teal-200 shadow-sm">
                       {order.tracking_number}
                     </span>
+                    {order.courier && (
+                      <p className="text-sm text-teal-700 mt-2">
+                        Silakan cek resi ini melalui situs web atau aplikasi {order.courier.split(' - ')[0] || 'kurir'}.
+                      </p>
+                    )}
                   </div>
                 )}
               </div>

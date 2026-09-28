@@ -170,18 +170,18 @@ export default function ArticleForm({ article, onClose, onSuccess }: ArticleForm
                       >
                         <HelpCircle size={14} /> Panduan Markdown
                       </button>
-                      <div className="flex bg-gray-100 rounded-lg p-1">
+                      <div className="flex bg-gray-100/80 rounded-lg p-1 border border-gray-200/50 shadow-[inset_0_1px_2px_rgba(0,0,0,0.04)]">
                         <button
                           type="button"
                           onClick={() => setShowPreview(false)}
-                          className={`px-3 py-1 text-xs font-medium rounded-md flex items-center gap-1 transition-colors ${!showPreview ? 'bg-white text-gray-800 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+                          className={`px-3 py-1.5 text-xs font-medium rounded-md flex items-center gap-1.5 transition-all duration-200 ${!showPreview ? 'bg-white text-brand-green shadow-sm ring-1 ring-black/5' : 'text-gray-500 hover:text-gray-700 hover:bg-gray-200/50'}`}
                         >
                           <Code size={14} /> Tulis
                         </button>
                         <button
                           type="button"
                           onClick={() => setShowPreview(true)}
-                          className={`px-3 py-1 text-xs font-medium rounded-md flex items-center gap-1 transition-colors ${showPreview ? 'bg-white text-gray-800 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+                          className={`px-3 py-1.5 text-xs font-medium rounded-md flex items-center gap-1.5 transition-all duration-200 ${showPreview ? 'bg-white text-brand-green shadow-sm ring-1 ring-black/5' : 'text-gray-500 hover:text-gray-700 hover:bg-gray-200/50'}`}
                         >
                           <Eye size={14} /> Pratinjau
                         </button>
@@ -191,7 +191,7 @@ export default function ArticleForm({ article, onClose, onSuccess }: ArticleForm
 
                   {showPreview ? (
                     <div className="w-full h-full p-4 border border-gray-200 rounded-lg bg-gray-50 overflow-y-auto">
-                      <div className="prose prose-brand max-w-none bg-white p-6 rounded-lg shadow-sm border border-gray-100 min-h-full">
+                      <div className="prose prose-brand max-w-none bg-white p-6 md:p-8 rounded-xl shadow-sm border border-gray-100 min-h-full ring-1 ring-inset ring-gray-100/50">
                         {content ? (
                           <ReactMarkdown>{content}</ReactMarkdown>
                         ) : (
@@ -281,7 +281,7 @@ export default function ArticleForm({ article, onClose, onSuccess }: ArticleForm
                   ) : (
                     <div
                       onClick={() => !uploadingImage && fileInputRef.current?.click()}
-                      className={`border-2 border-dashed border-gray-200 rounded-xl aspect-video flex flex-col items-center justify-center gap-2 cursor-pointer hover:bg-gray-50 hover:border-brand-green/50 transition-colors group ${uploadingImage ? 'opacity-50 cursor-not-allowed' : ''}`}
+                      className={`border-2 border-dashed border-gray-300 rounded-xl aspect-video flex flex-col items-center justify-center gap-2 cursor-pointer hover:bg-brand-green/5 hover:border-brand-green/50 transition-colors duration-300 group ${uploadingImage ? 'opacity-50 cursor-not-allowed' : ''}`}
                     >
                       {uploadingImage ? (
                         <>
@@ -322,7 +322,7 @@ export default function ArticleForm({ article, onClose, onSuccess }: ArticleForm
               <button
                 type="submit"
                 disabled={saving || uploadingImage}
-                className="px-6 py-2.5 bg-brand-green text-white font-medium rounded-lg hover:bg-brand-darkgreen transition-colors disabled:opacity-50 flex items-center gap-2 shadow-sm"
+                className="px-6 py-2.5 bg-brand-green text-white font-medium rounded-lg hover:bg-brand-darkgreen transition-all duration-200 active:scale-[0.97] ease-[cubic-bezier(0.23,1,0.32,1)] disabled:opacity-50 flex items-center gap-2 shadow-sm hover:shadow-md"
               >
                 {saving && <Loader2 size={18} className="animate-spin" />}
                 {saving ? "Menyimpan..." : (article ? "Simpan Perubahan" : "Terbitkan Artikel")}
@@ -331,7 +331,7 @@ export default function ArticleForm({ article, onClose, onSuccess }: ArticleForm
                 type="button"
                 onClick={onClose}
                 disabled={saving}
-                className="px-6 py-2.5 text-gray-600 font-medium hover:bg-gray-100 rounded-lg transition-colors disabled:opacity-50"
+                className="px-6 py-2.5 text-gray-600 font-medium hover:bg-gray-100 rounded-lg transition-all duration-200 active:scale-[0.97] ease-[cubic-bezier(0.23,1,0.32,1)] disabled:opacity-50"
               >
                 Batal
               </button>

@@ -19,8 +19,8 @@ export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
     const provinceId = searchParams.get('province');
 
-    if (!provinceId) {
-      return NextResponse.json({ error: 'Province ID is required' }, { status: 400 });
+    if (!provinceId || !/^\d+$/.test(provinceId)) {
+      return NextResponse.json({ error: 'Valid Province ID is required' }, { status: 400 });
     }
 
     const apiKey = process.env.RAJAONGKIR_API_KEY;

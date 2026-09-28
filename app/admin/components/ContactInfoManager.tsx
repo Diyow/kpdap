@@ -92,7 +92,7 @@ export default function ContactInfoManager() {
       </div>
 
       {message && (
-        <div className={`p-4 rounded-lg mb-6 text-sm font-medium ${message.type === 'success' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-red-50 text-red-700 border border-red-200'}`}>
+        <div className={`p-4 rounded-xl mb-6 text-sm font-medium shadow-sm ${message.type === 'success' ? 'bg-emerald-50 text-emerald-700 ring-1 ring-inset ring-emerald-600/20' : 'bg-red-50 text-red-700 ring-1 ring-inset ring-red-600/20'}`}>
           {message.text}
         </div>
       )}
@@ -110,7 +110,7 @@ export default function ContactInfoManager() {
               onChange={(e) => setPhone(e.target.value)}
               required
               placeholder="+62..."
-              className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-brand-green/20 focus:border-brand-green transition-colors outline-none"
+              className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-brand-green/20 focus:border-brand-green transition-all duration-200 outline-none"
             />
           </div>
           
@@ -124,7 +124,7 @@ export default function ContactInfoManager() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-brand-green/20 focus:border-brand-green transition-colors outline-none"
+              className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-brand-green/20 focus:border-brand-green transition-all duration-200 outline-none"
             />
           </div>
         </div>
@@ -133,7 +133,7 @@ export default function ContactInfoManager() {
           <button
             type="submit"
             disabled={saving}
-            className="bg-brand-green text-white px-6 py-2.5 rounded-lg font-medium hover:bg-brand-darkgreen transition-all shadow-sm hover:shadow-md disabled:opacity-70 disabled:cursor-not-allowed flex items-center gap-2"
+            className="bg-brand-green text-white px-6 py-2.5 rounded-lg font-medium hover:bg-brand-darkgreen transition-all duration-200 active:scale-[0.97] ease-[cubic-bezier(0.23,1,0.32,1)] shadow-sm hover:shadow-md disabled:opacity-70 disabled:cursor-not-allowed flex items-center gap-2"
           >
             {saving ? <Loader2 size={18} className="animate-spin" /> : null}
             {saving ? "Menyimpan..." : "Simpan Perubahan"}

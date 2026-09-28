@@ -146,9 +146,9 @@ export async function POST(request: Request) {
       const komerceData = roData.data || [];
       
       // Find the selected courier
-      const selectedCourierData = komerceData.filter((c: any) => c.code === shipping_details.courier);
+      const selectedCourierData = komerceData.filter((c: any) => c.code.toLowerCase() === shipping_details.courier.toLowerCase());
       // Find the specific service
-      const selectedService = selectedCourierData.find((s: any) => s.service === shipping_details.service);
+      const selectedService = selectedCourierData.find((s: any) => s.service.toLowerCase().trim() === shipping_details.service.toLowerCase().trim());
       
       if (!selectedService) {
          throw new Error(`Layanan kurir ${shipping_details.courier.toUpperCase()} - ${shipping_details.service} tidak tersedia untuk tujuan ini.`);

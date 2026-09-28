@@ -23,6 +23,10 @@ export default function ProductCard({ product }: { product: Product }) {
   const { addItem, setIsCartOpen } = useCartStore();
   const [isModalOpen, setIsModalOpen] = useState(false);
 
+  const comparePrice = Number(product.compare_at_price) || 0;
+  const currentPrice = Number(product.price) || 0;
+  const showComparePrice = comparePrice > currentPrice;
+
   const formatRupiah = (p: number) => {
     return new Intl.NumberFormat('id-ID', {
       style: 'currency',
@@ -72,9 +76,9 @@ export default function ProductCard({ product }: { product: Product }) {
             <div className="absolute top-3 right-3 bg-yellow-400 text-brand-text text-xs font-bold px-2.5 py-1 rounded-md shadow-sm">
               {product.badge}
             </div>
-          ) : product.compare_at_price && product.compare_at_price > product.price ? (
+          ) : showComparePrice ? (
             <div className="absolute top-3 right-3 bg-red-500 text-white text-xs font-bold px-2.5 py-1 rounded-md shadow-sm">
-              {Math.round(((product.compare_at_price - product.price) / product.compare_at_price) * 100)}% OFF
+              {Math.round(((comparePrice - currentPrice) / comparePrice) * 100)}% OFF
             </div>
           ) : null}
         </div>
@@ -85,10 +89,10 @@ export default function ProductCard({ product }: { product: Product }) {
           </p>
           <div className="mt-auto flex justify-between items-end">
             <div>
-              {product.compare_at_price && product.compare_at_price > product.price && (
-                <div className="text-xs text-gray-400 line-through mb-0.5">{formatRupiah(product.compare_at_price)}</div>
+              {showComparePrice && (
+                <div className="text-xs text-gray-400 line-through mb-0.5">{formatRupiah(comparePrice)}</div>
               )}
-              <div className="font-bold text-brand-green text-lg leading-tight">{formatRupiah(product.price)}</div>
+              <div className="font-bold text-brand-green text-lg leading-tight">{formatRupiah(currentPrice)}</div>
             </div>
             <button 
               onClick={handleAddToCart}

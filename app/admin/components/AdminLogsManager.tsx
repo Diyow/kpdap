@@ -3,20 +3,20 @@
 import { useState, useEffect, useCallback } from "react";
 import { createClient } from "@/utils/supabase/client";
 import { sanitizeFilterValue } from "@/utils/sanitize";
-import { 
-  Loader2, 
-  Search, 
+import {
+  Loader2,
+  Search,
   Filter,
-  ChevronLeft, 
-  ChevronRight, 
-  Clock, 
+  ChevronLeft,
+  ChevronRight,
+  Clock,
   Activity,
   ShieldAlert,
   History,
-  Package, 
+  Package,
   PackagePlus,
   PackageMinus,
-  User, 
+  User,
   UserPlus,
   UserMinus,
   KeyRound,
@@ -46,7 +46,7 @@ type AdminLog = {
   created_at: string;
 };
 
-const ITEMS_PER_PAGE = 20;
+const ITEMS_PER_PAGE = 7;
 
 export default function AdminLogsManager() {
   const [logs, setLogs] = useState<AdminLog[]>([]);
@@ -142,18 +142,18 @@ export default function AdminLogsManager() {
   };
 
   const getActionColor = (type: string) => {
-    if (type.includes("DELETE")) return "bg-red-50 text-red-700 border-red-200/80";
-    if (type.includes("CREATE")) return "bg-emerald-50 text-emerald-700 border-emerald-200/80";
-    if (type.includes("PASSWORD")) return "bg-purple-50 text-purple-700 border-purple-200/80";
-    if (type.includes("ORDER")) return "bg-blue-50 text-blue-700 border-blue-200/80";
-    if (type.includes("CONTACT")) return "bg-cyan-50 text-cyan-700 border-cyan-200/80";
-    if (type.includes("UPDATE")) return "bg-amber-50 text-amber-700 border-amber-200/80";
-    return "bg-gray-50 text-gray-700 border-gray-200";
+    if (type.includes("DELETE")) return "bg-red-50 text-red-700 ring-1 ring-inset ring-red-600/20";
+    if (type.includes("CREATE")) return "bg-emerald-50 text-emerald-700 ring-1 ring-inset ring-emerald-600/20";
+    if (type.includes("PASSWORD")) return "bg-purple-50 text-purple-700 ring-1 ring-inset ring-purple-600/20";
+    if (type.includes("ORDER")) return "bg-blue-50 text-blue-700 ring-1 ring-inset ring-blue-600/20";
+    if (type.includes("CONTACT")) return "bg-cyan-50 text-cyan-700 ring-1 ring-inset ring-cyan-600/20";
+    if (type.includes("UPDATE")) return "bg-amber-50 text-amber-700 ring-1 ring-inset ring-amber-600/20";
+    return "bg-gray-50 text-gray-700 ring-1 ring-inset ring-gray-600/20";
   };
 
   return (
-    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-      <div className="p-6 md:p-8 border-b border-gray-100 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-gray-50/50">
+    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden relative flex flex-col min-h-[875px] pb-24">
+      <div className="p-6 md:p-8 border-b border-gray-100 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-gray-50/50 shrink-0">
         <div className="flex items-center gap-3">
           <div className="w-12 h-12 bg-brand-lightbg rounded-xl flex items-center justify-center text-brand-green shrink-0 shadow-sm border border-brand-green/10">
             <History size={24} />
@@ -175,13 +175,13 @@ export default function AdminLogsManager() {
               className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-green/20 focus:border-brand-green transition-all text-sm shadow-sm h-10"
             />
           </div>
-          
+
           <div className="relative w-full sm:w-48 z-10 shrink-0">
             <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 z-10 pointer-events-none">
               <Filter size={16} />
             </div>
-            <Select 
-              value={actionFilter} 
+            <Select
+              value={actionFilter}
               onValueChange={(val) => {
                 setActionFilter(val);
                 setCurrentPage(1);
@@ -206,8 +206,8 @@ export default function AdminLogsManager() {
         </div>
       </div>
 
-      <div className="p-6">
-        <div className="border border-gray-200 rounded-xl overflow-x-auto shadow-sm">
+      <div className="p-6 flex-1 flex flex-col">
+        <div className={`border border-gray-200 rounded-xl overflow-x-auto shadow-sm ${loading ? 'opacity-50 pointer-events-none' : 'transition-opacity duration-200'}`}>
           <table className="w-full text-left text-sm">
             <thead className="bg-gray-50 border-b border-gray-200 text-gray-600">
               <tr>
@@ -218,10 +218,10 @@ export default function AdminLogsManager() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100 bg-white">
-              {loading ? (
+              {loading && logs.length === 0 ? (
                 <>
                   {[1, 2, 3, 4, 5].map(i => (
-                    <tr key={i}>
+                    <tr key={i} className="h-[72px]">
                       <td className="px-5 py-4"><Skeleton className="h-4 w-32" /></td>
                       <td className="px-5 py-4"><Skeleton className="h-4 w-48" /></td>
                       <td className="px-5 py-4"><Skeleton className="h-6 w-24 rounded-md" /></td>
@@ -240,7 +240,7 @@ export default function AdminLogsManager() {
                 </tr>
               ) : (
                 logs.map((log) => (
-                  <tr key={log.id} className="hover:bg-gray-50/80 transition-colors">
+                  <tr key={log.id} className="h-[72px] hover:bg-gray-50 transition-colors duration-200 group">
                     <td className="px-5 py-4 whitespace-nowrap">
                       <div className="flex items-center gap-2 text-gray-500 text-xs">
                         <Clock size={14} />
@@ -249,12 +249,16 @@ export default function AdminLogsManager() {
                     </td>
                     <td className="px-5 py-4 font-medium text-gray-900">{log.admin_email}</td>
                     <td className="px-5 py-4">
-                      <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 text-[11px] font-bold rounded-md border tracking-wide ${getActionColor(log.action_type)}`}>
+                      <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 text-[11px] font-bold rounded-md tracking-wide ${getActionColor(log.action_type)}`}>
                         {getActionIcon(log.action_type)}
                         {log.action_type}
                       </span>
                     </td>
-                    <td className="px-5 py-4 text-gray-600">{log.description}</td>
+                    <td className="px-5 py-4">
+                      <div className="text-gray-600 max-w-[400px] line-clamp-3" title={log.description}>
+                        {log.description}
+                      </div>
+                    </td>
                   </tr>
                 ))
               )}
@@ -262,9 +266,9 @@ export default function AdminLogsManager() {
           </table>
         </div>
 
-        {/* Pagination */}
-        {!loading && totalPages > 1 && (
-          <div className="flex flex-col sm:flex-row justify-between items-center mt-6 gap-4">
+        {/* Pagination - Anchored to bottom with mt-auto */}
+        {totalPages > 1 && (
+          <div className="absolute bottom-0 left-0 right-0 px-6 py-5 bg-white border-t border-gray-100 flex flex-col sm:flex-row justify-between items-center gap-4 z-10">
             <span className="text-sm text-gray-500">
               Menampilkan {(currentPage - 1) * ITEMS_PER_PAGE + 1} - {Math.min(currentPage * ITEMS_PER_PAGE, totalCount)} dari {totalCount} log
             </span>
@@ -272,10 +276,10 @@ export default function AdminLogsManager() {
               <Tooltip content="Halaman Sebelumnya">
                 <button
                   onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-                  disabled={currentPage === 1}
-                  className="p-2 border border-gray-200 rounded-lg text-gray-600 hover:bg-gray-100 hover:text-gray-900 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  disabled={currentPage === 1 || loading}
+                  className="p-2 border border-gray-200 rounded-lg text-gray-600 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center"
                 >
-                  <ChevronLeft size={18} />
+                  <ChevronLeft size={20} />
                 </button>
               </Tooltip>
               <div className="flex items-center px-4 font-medium text-sm text-gray-700 bg-gray-50 border border-gray-200 rounded-lg">
@@ -284,10 +288,10 @@ export default function AdminLogsManager() {
               <Tooltip content="Halaman Selanjutnya">
                 <button
                   onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-                  disabled={currentPage === totalPages}
-                  className="p-2 border border-gray-200 rounded-lg text-gray-600 hover:bg-gray-100 hover:text-gray-900 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  disabled={currentPage === totalPages || loading}
+                  className="p-2 border border-gray-200 rounded-lg text-gray-600 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center"
                 >
-                  <ChevronRight size={18} />
+                  <ChevronRight size={20} />
                 </button>
               </Tooltip>
             </div>

@@ -24,7 +24,7 @@ export type Article = {
   updated_at: string;
 };
 
-const ITEMS_PER_PAGE = 10;
+const ITEMS_PER_PAGE = 6;
 
 export default function ArticlesManager() {
   const [articles, setArticles] = useState<Article[]>([]);
@@ -170,8 +170,8 @@ export default function ArticlesManager() {
 
   return (
     <>
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8 border-b border-gray-100 pb-6">
+      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden relative flex flex-col min-h-[875px] pb-24">
+        <div className="p-6 md:p-8 border-b border-gray-100 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-gray-50/50 shrink-0">
           <div className="flex items-center gap-4">
             <div className="w-12 h-12 bg-brand-lightbg rounded-xl flex items-center justify-center text-brand-green shrink-0 shadow-sm border border-brand-green/10">
               <Newspaper size={24} />
@@ -195,7 +195,7 @@ export default function ArticlesManager() {
             </form>
             <button
               onClick={handleCreate}
-              className="flex items-center justify-center gap-2 px-4 py-2 bg-brand-green text-white rounded-lg hover:bg-brand-darkgreen transition-colors font-medium text-sm shrink-0"
+              className="flex items-center justify-center gap-2 px-4 py-2 bg-brand-green text-white rounded-lg hover:bg-brand-darkgreen transition-all duration-200 active:scale-[0.97] ease-[cubic-bezier(0.23,1,0.32,1)] font-medium text-sm shrink-0 shadow-sm hover:shadow-md"
             >
               <Plus size={18} />
               Tambah Artikel
@@ -203,126 +203,131 @@ export default function ArticlesManager() {
           </div>
         </div>
 
-        <div className="border border-gray-200 rounded-xl overflow-x-auto shadow-sm">
-          <table className="w-full text-left text-sm">
-            <thead className="bg-gray-50 border-b border-gray-200 text-gray-600">
-              <tr>
-                <th className="px-5 py-3.5 font-medium">Judul</th>
-                <th className="px-5 py-3.5 font-medium">Status</th>
-                <th className="px-5 py-3.5 font-medium">Tanggal Dibuat</th>
-                <th className="px-5 py-3.5 font-medium text-right">Aksi</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100 bg-white">
-              {articles.map((article) => (
-                <tr key={article.id} className="hover:bg-gray-50/50 transition-colors">
-                  <td className="px-5 py-4">
-                    <div className="flex items-center gap-3">
-                      {article.cover_image_url ? (
-                        <img
-                          src={article.cover_image_url}
-                          alt={article.title}
-                          className="w-12 h-12 rounded-lg object-cover bg-gray-100 shrink-0"
-                        />
-                      ) : (
-                        <div className="w-12 h-12 rounded-lg bg-brand-lightbg flex items-center justify-center text-brand-green shrink-0">
-                          <FileText size={20} />
-                        </div>
-                      )}
-                      <div>
-                        <span className="font-bold text-brand-text line-clamp-1">{article.title}</span>
-                        <span className="text-xs text-gray-400 mt-1 block">/{article.slug}</span>
-                      </div>
-                    </div>
-                  </td>
-                  <td className="px-5 py-4">
-                    {article.is_published ? (
-                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-700 border border-emerald-200">
-                        <Globe size={12} /> Publik
-                      </span>
-                    ) : (
-                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-gray-100 text-gray-600 border border-gray-200">
-                        <Lock size={12} /> Draf
-                      </span>
-                    )}
-                  </td>
-                  <td className="px-5 py-4 text-gray-500 text-sm">
-                    {new Date(article.created_at).toLocaleDateString('id-ID', { dateStyle: 'medium' })}
-                  </td>
-                  <td className="px-5 py-4 text-right">
-                    <div className="flex items-center justify-end gap-2">
-                      <Tooltip content="Lihat Artikel">
-                        <a
-                          href={`/blog/${article.slug}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                        >
-                          <ExternalLink size={18} />
-                        </a>
-                      </Tooltip>
-                      <Tooltip content="Edit Artikel">
-                        <button
-                          onClick={() => handleEdit(article)}
-                          className="p-2 text-gray-400 hover:text-brand-green hover:bg-brand-green/10 rounded-lg transition-colors"
-                        >
-                          <Edit size={18} />
-                        </button>
-                      </Tooltip>
-                      <Tooltip content="Hapus Artikel">
-                        <button
-                          onClick={() => confirmDelete(article.id, article.title, article.cover_image_url)}
-                          className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                        >
-                          <Trash2 size={18} />
-                        </button>
-                      </Tooltip>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-              {!loading && articles.length === 0 && (
+        <div className="p-6 flex-1 flex flex-col">
+          <div className={`border border-gray-200 rounded-xl overflow-x-auto shadow-sm ${loading ? 'opacity-50 pointer-events-none' : 'transition-opacity duration-200'}`}>
+            <table className="w-full text-left text-sm">
+              <thead className="bg-gray-50 border-b border-gray-200 text-gray-600">
                 <tr>
-                  <td colSpan={4} className="px-5 py-16 text-center text-gray-500">
-                    <div className="flex flex-col items-center justify-center gap-2">
-                      <FileText size={32} className="text-gray-300" />
-                      <p>Tidak ada artikel yang ditemukan.</p>
-                    </div>
-                  </td>
+                  <th className="px-5 py-3.5 font-medium">Judul</th>
+                  <th className="px-5 py-3.5 font-medium">Status</th>
+                  <th className="px-5 py-3.5 font-medium">Tanggal Dibuat</th>
+                  <th className="px-5 py-3.5 font-medium text-right">Aksi</th>
                 </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-
-        {/* Pagination Controls */}
-        {!loading && totalPages > 1 && (
-          <div className="flex items-center justify-between mt-6 px-2">
-            <p className="text-sm text-gray-500">
-              Menampilkan {(currentPage - 1) * ITEMS_PER_PAGE + 1} - {Math.min(currentPage * ITEMS_PER_PAGE, totalCount)} dari {totalCount} artikel
-            </p>
-            <div className="flex gap-2">
-              <Tooltip content="Halaman Sebelumnya">
-                <button
-                  onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-                  disabled={currentPage === 1}
-                  className="p-2 border border-gray-200 rounded-lg disabled:opacity-50 hover:bg-gray-50 transition-colors"
-                >
-                  <ChevronLeft size={18} />
-                </button>
-              </Tooltip>
-              <Tooltip content="Halaman Selanjutnya">
-                <button
-                  onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-                  disabled={currentPage === totalPages}
-                  className="p-2 border border-gray-200 rounded-lg disabled:opacity-50 hover:bg-gray-50 transition-colors"
-                >
-                  <ChevronRight size={18} />
-                </button>
-              </Tooltip>
-            </div>
+              </thead>
+              <tbody className="divide-y divide-gray-100 bg-white">
+                {articles.map((article) => (
+                  <tr key={article.id} className="h-[80px] hover:bg-gray-50 transition-colors duration-200 group">
+                    <td className="px-5 py-4">
+                      <div className="flex items-center gap-3">
+                        <div className="w-12 h-12 bg-brand-lightbg rounded-lg overflow-hidden relative flex justify-center items-center border border-gray-100 shrink-0">
+                          {article.cover_image_url ? (
+                            <img
+                              src={article.cover_image_url}
+                              alt={article.title}
+                              className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500 ease-out"
+                            />
+                          ) : (
+                            <FileText size={20} className="text-brand-green group-hover:scale-110 transition-transform duration-500 ease-out" />
+                          )}
+                        </div>
+                        <div>
+                          <span className="font-bold text-brand-text line-clamp-1">{article.title}</span>
+                          <span className="text-xs text-gray-400 mt-1 block">/{article.slug}</span>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-5 py-4">
+                      {article.is_published ? (
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 ring-1 ring-inset ring-emerald-600/20">
+                          <Globe size={12} /> Publik
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-gray-50 text-gray-700 ring-1 ring-inset ring-gray-600/20">
+                          <Lock size={12} /> Draf
+                        </span>
+                      )}
+                    </td>
+                    <td className="px-5 py-4 text-gray-500 text-sm">
+                      {new Date(article.created_at).toLocaleDateString('id-ID', { dateStyle: 'medium' })}
+                    </td>
+                    <td className="px-5 py-4 text-right">
+                      <div className="flex items-center justify-end gap-2">
+                        <Tooltip content="Lihat Artikel">
+                          <a
+                            href={`/blog/${article.slug}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all duration-200 active:scale-[0.95] ease-[cubic-bezier(0.23,1,0.32,1)]"
+                          >
+                            <ExternalLink size={18} />
+                          </a>
+                        </Tooltip>
+                        <Tooltip content="Edit Artikel">
+                          <button
+                            onClick={() => handleEdit(article)}
+                            className="p-2 text-gray-400 hover:text-brand-green hover:bg-brand-green/10 rounded-lg transition-all duration-200 active:scale-[0.95] ease-[cubic-bezier(0.23,1,0.32,1)]"
+                          >
+                            <Edit size={18} />
+                          </button>
+                        </Tooltip>
+                        <Tooltip content="Hapus Artikel">
+                          <button
+                            onClick={() => confirmDelete(article.id, article.title, article.cover_image_url)}
+                            className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all duration-200 active:scale-[0.95] ease-[cubic-bezier(0.23,1,0.32,1)]"
+                          >
+                            <Trash2 size={18} />
+                          </button>
+                        </Tooltip>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+                {!loading && articles.length === 0 && (
+                  <tr>
+                    <td colSpan={4} className="px-5 py-16 text-center text-gray-500">
+                      <div className="flex flex-col items-center justify-center gap-2">
+                        <FileText size={32} className="text-gray-300" />
+                        <p>Tidak ada artikel yang ditemukan.</p>
+                      </div>
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
           </div>
-        )}
+
+          {/* Pagination Controls */}
+          {totalPages > 1 && (
+            <div className="absolute bottom-0 left-0 right-0 px-6 py-5 bg-white border-t border-gray-100 flex flex-col sm:flex-row justify-between items-center gap-4 z-10">
+              <span className="text-sm text-gray-500">
+                Menampilkan {(currentPage - 1) * ITEMS_PER_PAGE + 1} - {Math.min(currentPage * ITEMS_PER_PAGE, totalCount)} dari {totalCount} artikel
+              </span>
+              <div className="flex gap-2">
+                <Tooltip content="Halaman Sebelumnya">
+                  <button
+                    onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                    disabled={currentPage === 1 || loading}
+                    className="p-2 border border-gray-200 rounded-lg text-gray-600 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center"
+                  >
+                    <ChevronLeft size={20} />
+                  </button>
+                </Tooltip>
+                <div className="flex items-center px-4 font-medium text-sm text-gray-700 bg-gray-50 border border-gray-200 rounded-lg">
+                  {currentPage} / {totalPages}
+                </div>
+                <Tooltip content="Halaman Selanjutnya">
+                  <button
+                    onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                    disabled={currentPage === totalPages || loading}
+                    className="p-2 border border-gray-200 rounded-lg text-gray-600 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center"
+                  >
+                    <ChevronRight size={20} />
+                  </button>
+                </Tooltip>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Delete Confirmation Modal */}

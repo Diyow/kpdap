@@ -19,14 +19,14 @@ export type Product = {
   stock: number;
   images: string[];
   specifications: Record<string, string>;
-  variations: {name: string, price: number, stock: number, weight: number}[];
+  variations: { name: string, price: number, stock: number, weight: number }[];
   category_id?: string | null;
   is_active?: boolean;
   weight: number;
   compare_at_price?: number | null;
 };
 
-const ITEMS_PER_PAGE = 10;
+const ITEMS_PER_PAGE = 5;
 
 export default function ProductsManager() {
   const [products, setProducts] = useState<Product[]>([]);
@@ -59,7 +59,7 @@ export default function ProductsManager() {
     query = query.order("id", { ascending: false }).range(from, to);
 
     const { data, count, error } = await query;
-    
+
     if (!error && data) {
       setProducts(data);
       if (count !== null) setTotalCount(count);
@@ -79,17 +79,17 @@ export default function ProductsManager() {
   const handleDeleteProduct = async () => {
     if (!productToDelete) return;
     setIsDeleting(true);
-    
+
     // Delete product images from storage first
     const imageUrls = [productToDelete.image, ...(productToDelete.images || [])].filter(Boolean);
     if (imageUrls.length > 0) {
       const { deleteStorageFiles } = await import('@/app/actions/storage');
       await deleteStorageFiles(imageUrls, 'product-images');
     }
-    
+
     await supabase.from("products").delete().eq("id", productToDelete.id);
     await logAdminActivity("DELETE_PRODUCT", `Menghapus produk: ${productToDelete.title}`);
-    
+
     fetchProducts();
     setDeleteModalOpen(false);
     setProductToDelete(null);
@@ -114,8 +114,8 @@ export default function ProductsManager() {
 
   if (isEditing || isCreating) {
     return (
-      <ProductForm 
-        initialData={isEditing} 
+      <ProductForm
+        initialData={isEditing}
         onSave={() => {
           setIsEditing(null);
           setIsCreating(false);
@@ -129,7 +129,7 @@ export default function ProductsManager() {
     );
   }
 
-  if (loading) {
+  if (loading && products.length === 0) {
     return (
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
@@ -182,8 +182,8 @@ export default function ProductsManager() {
   }
 
   return (
-    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8 border-b border-gray-100 pb-6">
+    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden relative flex flex-col min-h-[875px] pb-24">
+      <div className="p-6 md:p-8 border-b border-gray-100 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-gray-50/50 shrink-0">
         <div className="flex items-center gap-4">
           <div className="w-12 h-12 bg-brand-lightbg rounded-xl flex items-center justify-center text-brand-green shrink-0 shadow-sm border border-brand-green/10">
             <Package size={24} />
@@ -193,120 +193,125 @@ export default function ProductsManager() {
             <p className="text-gray-500 text-sm">Kelola katalog produk Anda</p>
           </div>
         </div>
-        
+
         <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
           <form onSubmit={handleSearch} className="relative flex-1 sm:w-64">
-            <input 
-              type="text" 
-              placeholder="Cari produk..." 
+            <input
+              type="text"
+              placeholder="Cari produk..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-brand-green/20 focus:border-brand-green transition-colors outline-none text-sm"
             />
             <Search className="absolute left-3 top-2.5 text-gray-400" size={16} />
           </form>
-          
-          <button onClick={() => setIsCreating(true)} className="flex items-center justify-center gap-2 bg-brand-green text-white px-5 py-2 rounded-lg font-medium hover:bg-brand-darkgreen transition-all shadow-sm hover:shadow-md text-sm whitespace-nowrap">
+
+          <button onClick={() => setIsCreating(true)} className="flex items-center justify-center gap-2 bg-brand-green text-white px-5 py-2 rounded-lg font-medium hover:bg-brand-darkgreen transition-all duration-200 active:scale-[0.97] ease-[cubic-bezier(0.23,1,0.32,1)] shadow-sm hover:shadow-md text-sm whitespace-nowrap">
             <Plus size={18} />
             Tambah Produk
           </button>
         </div>
       </div>
 
-      <div className="border border-gray-200 rounded-xl overflow-x-auto shadow-sm">
-        <table className="w-full text-left text-sm">
-          <thead className="bg-gray-50 border-b border-gray-200 text-gray-600">
-            <tr>
-              <th className="px-5 py-3.5 font-medium">Gambar</th>
-              <th className="px-5 py-3.5 font-medium">Judul</th>
-              <th className="px-5 py-3.5 font-medium">Status</th>
-              <th className="px-5 py-3.5 font-medium">Stok</th>
-              <th className="px-5 py-3.5 font-medium">Harga</th>
-              <th className="px-5 py-3.5 font-medium text-right">Aksi</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-100 bg-white">
-            {products.map((product) => (
-              <tr key={product.id} className="hover:bg-gray-50/50 transition-colors">
-                <td className="py-4 px-5">
-                  <div className="w-14 h-14 bg-brand-lightbg rounded-lg overflow-hidden relative flex justify-center items-center border border-gray-100">
-                    {product.image ? (
-                      <Image src={product.image} alt={product.title} fill className="object-cover" />
-                    ) : (
-                      <ImageIcon className="text-gray-400" />
-                    )}
-                  </div>
-                </td>
-                <td className="py-4 px-5">
-                  <div className="font-bold text-brand-text">{product.title}</div>
-                  <div className="text-xs text-gray-500 mt-1 max-w-[200px] truncate">{product.description || "-"}</div>
-                </td>
-                <td className="py-4 px-5">
-                  <span className={`px-2.5 py-1 rounded-full text-xs font-bold ${product.is_active ?? true ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-gray-100 text-gray-700 border border-gray-200'}`}>
-                    {(product.is_active ?? true) ? 'Aktif' : 'Draft'}
-                  </span>
-                </td>
-                <td className="py-4 px-5">
-                  <span className={`px-2.5 py-1 rounded-full text-xs font-bold ${product.stock && product.stock > 0 ? 'bg-gray-100 text-gray-700' : 'bg-red-100 text-red-700'}`}>
-                    {product.stock || 0}
-                  </span>
-                </td>
-                <td className="py-4 px-5 font-medium text-brand-green">{formatRupiah(product.price)}</td>
-                <td className="py-4 px-5">
-                  <div className="flex justify-end gap-2">
-                    <Tooltip content="Edit Produk">
-                      <button onClick={() => setIsEditing(product)} className="p-2 text-gray-400 hover:text-brand-green hover:bg-brand-green/10 rounded-lg transition-colors">
-                        <Pencil size={18} />
-                      </button>
-                    </Tooltip>
-                    <Tooltip content="Hapus Produk">
-                      <button onClick={() => confirmDelete(product)} className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors">
-                        <Trash2 size={18} />
-                      </button>
-                    </Tooltip>
-                  </div>
-                </td>
-              </tr>
-            ))}
-            {!loading && products.length === 0 && (
+      <div className="p-6 flex-1 flex flex-col">
+        <div className={`border border-gray-200 rounded-xl overflow-x-auto shadow-sm ${loading ? 'opacity-50 pointer-events-none' : 'transition-opacity duration-200'}`}>
+          <table className="w-full text-left text-sm">
+            <thead className="bg-gray-50 border-b border-gray-200 text-gray-600">
               <tr>
-                <td colSpan={6} className="py-12 text-center text-gray-500">
-                  Tidak ada produk yang ditemukan.
-                </td>
+                <th className="px-5 py-3.5 font-medium">Gambar</th>
+                <th className="px-5 py-3.5 font-medium">Judul</th>
+                <th className="px-5 py-3.5 font-medium">Status</th>
+                <th className="px-5 py-3.5 font-medium">Stok</th>
+                <th className="px-5 py-3.5 font-medium">Harga</th>
+                <th className="px-5 py-3.5 font-medium text-right">Aksi</th>
               </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
-
-      {/* Pagination Controls */}
-      {!loading && totalPages > 1 && (
-        <div className="flex items-center justify-between mt-6 px-2">
-          <p className="text-sm text-gray-500">
-            Menampilkan {(currentPage - 1) * ITEMS_PER_PAGE + 1} - {Math.min(currentPage * ITEMS_PER_PAGE, totalCount)} dari {totalCount} produk
-          </p>
-          <div className="flex gap-2">
-            <Tooltip content="Halaman Sebelumnya">
-              <button 
-                onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-                disabled={currentPage === 1}
-                className="p-2 border border-gray-200 rounded-lg disabled:opacity-50 hover:bg-gray-50 transition-colors"
-              >
-                <ChevronLeft size={18} />
-              </button>
-            </Tooltip>
-            <Tooltip content="Halaman Selanjutnya">
-              <button 
-                onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-                disabled={currentPage === totalPages}
-                className="p-2 border border-gray-200 rounded-lg disabled:opacity-50 hover:bg-gray-50 transition-colors"
-              >
-                <ChevronRight size={18} />
-              </button>
-            </Tooltip>
-          </div>
+            </thead>
+            <tbody className="divide-y divide-gray-100 bg-white">
+              {products.map((product) => (
+                <tr key={product.id} className="h-[80px] hover:bg-gray-50 transition-colors duration-200 group">
+                  <td className="py-4 px-5">
+                    <div className="w-14 h-14 bg-brand-lightbg rounded-lg overflow-hidden relative flex justify-center items-center border border-gray-100">
+                      {product.image ? (
+                        <Image src={product.image} alt={product.title} fill className="object-cover group-hover:scale-110 transition-transform duration-500 ease-out" />
+                      ) : (
+                        <ImageIcon className="text-gray-400 group-hover:scale-110 transition-transform duration-500 ease-out" />
+                      )}
+                    </div>
+                  </td>
+                  <td className="py-4 px-5">
+                    <div className="font-bold text-brand-text">{product.title}</div>
+                    <div className="text-xs text-gray-500 mt-1 max-w-[200px] line-clamp-3" title={product.description || ""}>{product.description || "-"}</div>
+                  </td>
+                  <td className="py-4 px-5">
+                    <span className={`px-2.5 py-1 rounded-full text-xs font-bold ${product.is_active ?? true ? 'bg-emerald-50 text-emerald-700 ring-1 ring-inset ring-emerald-600/20' : 'bg-gray-50 text-gray-700 ring-1 ring-inset ring-gray-600/20'}`}>
+                      {(product.is_active ?? true) ? 'Aktif' : 'Draft'}
+                    </span>
+                  </td>
+                  <td className="py-4 px-5">
+                    <span className={`px-2.5 py-1 rounded-full text-xs font-bold ${product.stock && product.stock > 0 ? 'bg-gray-50 text-gray-700 ring-1 ring-inset ring-gray-600/20' : 'bg-red-50 text-red-700 ring-1 ring-inset ring-red-600/20'}`}>
+                      {product.stock || 0}
+                    </span>
+                  </td>
+                  <td className="py-4 px-5 font-medium text-brand-green">{formatRupiah(product.price)}</td>
+                  <td className="py-4 px-5">
+                    <div className="flex justify-end gap-2">
+                      <Tooltip content="Edit Produk">
+                        <button onClick={() => setIsEditing(product)} className="p-2 text-gray-400 hover:text-brand-green hover:bg-brand-green/10 rounded-lg transition-all duration-200 active:scale-[0.95] ease-[cubic-bezier(0.23,1,0.32,1)]">
+                          <Pencil size={18} />
+                        </button>
+                      </Tooltip>
+                      <Tooltip content="Hapus Produk">
+                        <button onClick={() => confirmDelete(product)} className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all duration-200 active:scale-[0.95] ease-[cubic-bezier(0.23,1,0.32,1)]">
+                          <Trash2 size={18} />
+                        </button>
+                      </Tooltip>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+              {!loading && products.length === 0 && (
+                <tr>
+                  <td colSpan={6} className="py-12 text-center text-gray-500">
+                    Tidak ada produk yang ditemukan.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
         </div>
-      )}
+
+        {/* Pagination Controls */}
+        {totalPages > 1 && (
+          <div className="absolute bottom-0 left-0 right-0 px-6 py-5 bg-white border-t border-gray-100 flex flex-col sm:flex-row justify-between items-center gap-4 z-10">
+            <span className="text-sm text-gray-500">
+              Menampilkan {(currentPage - 1) * ITEMS_PER_PAGE + 1} - {Math.min(currentPage * ITEMS_PER_PAGE, totalCount)} dari {totalCount} produk
+            </span>
+            <div className="flex gap-2">
+              <Tooltip content="Halaman Sebelumnya">
+                <button
+                  onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                  disabled={currentPage === 1 || loading}
+                  className="p-2 border border-gray-200 rounded-lg text-gray-600 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center"
+                >
+                  <ChevronLeft size={20} />
+                </button>
+              </Tooltip>
+              <div className="flex items-center px-4 font-medium text-sm text-gray-700 bg-gray-50 border border-gray-200 rounded-lg">
+                {currentPage} / {totalPages}
+              </div>
+              <Tooltip content="Halaman Selanjutnya">
+                <button
+                  onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                  disabled={currentPage === totalPages || loading}
+                  className="p-2 border border-gray-200 rounded-lg text-gray-600 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center"
+                >
+                  <ChevronRight size={20} />
+                </button>
+              </Tooltip>
+            </div>
+          </div>
+        )}
+      </div>
 
       {/* Delete Confirmation Modal */}
       {deleteModalOpen && (
@@ -316,11 +321,11 @@ export default function ProductsManager() {
               <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center text-red-600">
                 <AlertCircle size={24} />
               </div>
-              
+
               <div>
                 <h3 className="text-lg font-bold text-gray-900 mb-1">Hapus Produk</h3>
                 <p className="text-sm text-gray-500">
-                  Apakah Anda yakin ingin menghapus <span className="font-semibold text-gray-700">{productToDelete?.title}</span>? 
+                  Apakah Anda yakin ingin menghapus <span className="font-semibold text-gray-700">{productToDelete?.title}</span>?
                   Tindakan ini tidak dapat dibatalkan.
                 </p>
               </div>

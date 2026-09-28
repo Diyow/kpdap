@@ -48,7 +48,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     <div className="min-h-screen bg-brand-lightbg flex flex-col font-sans">
       <RealtimeOrderNotification />
       {/* Topbar matching main Header.tsx */}
-      <header className="bg-white shadow-sm py-4 px-4 md:px-8 sticky top-0 z-50">
+      <header className="bg-white/80 backdrop-blur-xl border-b border-gray-200/60 shadow-sm py-4 px-4 md:px-8 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto flex justify-between items-center">
           <Link href="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
             <div className="w-10 h-10 shrink-0 relative">
@@ -64,7 +64,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               <p className="text-[10px] text-green-700 uppercase tracking-wider leading-tight hidden sm:block">Koperasi Produsen Dharma Asastha Partiwi</p>
             </div>
           </Link>
-          
+
           <div className="flex items-center gap-4">
             {userEmail && (
               <span className="hidden md:inline text-sm font-medium text-gray-500 mr-2 border-r border-gray-200 pr-4">
@@ -73,16 +73,16 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             )}
             <Link
               href="/"
-              className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-600 hover:text-brand-green hover:bg-brand-lightbg rounded-lg transition-colors"
+              className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-600 hover:text-brand-green hover:bg-brand-lightbg rounded-lg transition-all duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] active:scale-[0.97]"
             >
               <Home size={16} />
               <span className="hidden sm:inline">Kembali ke Beranda</span>
             </Link>
-            
+
             <button
               onClick={handleLogout}
               disabled={isLoggingOut}
-              className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-red-600 hover:text-white hover:bg-red-500 rounded-lg transition-colors disabled:opacity-50"
+              className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-red-600 hover:text-white hover:bg-red-500 rounded-lg transition-all duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] active:scale-[0.97] disabled:opacity-50"
             >
               {isLoggingOut ? <Loader2 size={16} className="animate-spin" /> : <LogOut size={16} />}
               <span className="hidden sm:inline">{isLoggingOut ? "Keluar..." : "Keluar"}</span>
@@ -93,8 +93,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
       {/* Main Content */}
       <main className="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8">
-        <div className="mb-8">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="mb-8 md:sticky md:top-[72px] z-40 md:-mt-6 lg:-mt-8 md:pt-6 lg:pt-8 pointer-events-none">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pointer-events-auto">
             <h1 className="text-3xl font-extrabold text-brand-text tracking-tight">
               Dasbor Admin
             </h1>

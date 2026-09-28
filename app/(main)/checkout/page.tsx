@@ -39,7 +39,7 @@ export default function CheckoutPage() {
   const [provinces, setProvinces] = useState<any[]>([]);
   const [cities, setCities] = useState<any[]>([]);
   const [shippingServices, setShippingServices] = useState<any[]>([]);
-  
+
   const [selectedProvince, setSelectedProvince] = useState("");
   const [selectedCity, setSelectedCity] = useState("");
   const [selectedCourier, setSelectedCourier] = useState("");
@@ -91,14 +91,14 @@ export default function CheckoutPage() {
           courier: selectedCourier
         })
       })
-      .then(res => res.json())
-      .then(data => {
-        if (Array.isArray(data) && data.length > 0) {
-          setShippingServices(data[0].costs);
-        }
-      })
-      .catch(console.error)
-      .finally(() => setIsFetchingShipping(false));
+        .then(res => res.json())
+        .then(data => {
+          if (Array.isArray(data) && data.length > 0) {
+            setShippingServices(data[0].costs);
+          }
+        })
+        .catch(console.error)
+        .finally(() => setIsFetchingShipping(false));
     }
   }, [selectedCity, selectedCourier, items]);
 
@@ -110,14 +110,14 @@ export default function CheckoutPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ order_id: pendingOrderId })
       })
-      .then(res => res.json())
-      .then(data => {
-        if (data.order && data.order.status !== 'pending') {
-          // Order is no longer pending (paid, expired, cancelled), clear it
-          setPendingOrderId(null);
-        }
-      })
-      .catch(console.error);
+        .then(res => res.json())
+        .then(data => {
+          if (data.order && data.order.status !== 'pending') {
+            // Order is no longer pending (paid, expired, cancelled), clear it
+            setPendingOrderId(null);
+          }
+        })
+        .catch(console.error);
     }
   }, [pendingOrderId, mounted, setPendingOrderId]);
 
@@ -139,7 +139,7 @@ export default function CheckoutPage() {
   const handleCheckout = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    
+
     try {
       const response = await fetch('/api/checkout', {
         method: 'POST',
@@ -191,7 +191,7 @@ export default function CheckoutPage() {
           setIsLoading(false);
         }
       });
-      
+
     } catch (error: any) {
       console.error(error);
       toast.error(error.message);
@@ -227,20 +227,20 @@ export default function CheckoutPage() {
   if (items.length === 0) {
     return (
       <>
-                <EmptyState
+        <EmptyState
           icon={ShoppingBag}
           title="Keranjang Belanja Kosong"
           description="Anda belum menambahkan produk apapun ke keranjang."
           actionText="Mulai Belanja"
           actionHref="/products"
         />
-              </>
+      </>
     );
   }
 
   return (
     <>
-            <main className="flex-1 w-full bg-brand-lightbg py-12 px-4 md:px-8">
+      <main className="flex-1 w-full bg-brand-lightbg py-12 px-4 md:px-8">
         <div className="max-w-6xl mx-auto">
           <BackLink href="/products" text="Kembali Belanja" className="mb-8" />
 
@@ -253,7 +253,7 @@ export default function CheckoutPage() {
                   <p className="text-sm mt-1 opacity-90">Anda memiliki pesanan yang belum dibayar. Batalkan pesanan tersebut jika Anda ingin mengubah metode pembayaran atau membuat pesanan baru.</p>
                 </div>
               </div>
-              <button 
+              <button
                 onClick={() => setShowCancelModal(true)}
                 disabled={isCancelling}
                 className="bg-white text-red-600 border border-red-200 px-6 py-2.5 rounded-xl font-bold text-sm hover:bg-red-50 disabled:opacity-50 whitespace-nowrap shadow-sm transition-colors"
@@ -262,63 +262,63 @@ export default function CheckoutPage() {
               </button>
             </div>
           )}
-          
+
           <div className="flex flex-col lg:flex-row gap-8">
             {/* Form Section */}
             <div className="flex-1">
               <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
                 <h2 className="text-2xl font-bold text-brand-text mb-6">Informasi Pengiriman (Checkout)</h2>
-                
+
                 <form onSubmit={handleCheckout} className="space-y-4">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">Nama Lengkap *</label>
-                      <input 
+                      <input
                         id="name"
                         required
-                        type="text" 
+                        type="text"
                         name="name"
                         autoComplete="name"
                         value={formData.name}
                         onChange={handleInputChange}
-                        className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-green" 
+                        className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-green"
                         placeholder="Budi Santoso"
                       />
                     </div>
                     <div>
                       <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-1">Nomor WhatsApp *</label>
-                      <input 
+                      <input
                         id="phone"
                         required
-                        type="tel" 
+                        type="tel"
                         name="phone"
                         autoComplete="tel"
                         value={formData.phone}
                         onChange={handleInputChange}
-                        className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-green" 
+                        className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-green"
                         placeholder="081234567890"
                       />
                     </div>
                   </div>
-                  
+
                   <div>
                     <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">Alamat Email (Opsional)</label>
-                    <input 
+                    <input
                       id="email"
-                      type="email" 
+                      type="email"
                       name="email"
                       autoComplete="email"
                       value={formData.email}
                       onChange={handleInputChange}
-                      className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-green" 
+                      className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-green"
                       placeholder="budi@email.com"
                     />
                   </div>
-                  
+
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <label htmlFor="province" className="block text-sm font-medium text-gray-700 mb-1">Provinsi *</label>
-                      <select 
+                      <select
                         id="province"
                         name="province"
                         required
@@ -335,7 +335,7 @@ export default function CheckoutPage() {
                     </div>
                     <div>
                       <label htmlFor="city" className="block text-sm font-medium text-gray-700 mb-1">Kota/Kabupaten *</label>
-                      <select 
+                      <select
                         id="city"
                         name="city"
                         required
@@ -356,7 +356,7 @@ export default function CheckoutPage() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <label htmlFor="courier" className="block text-sm font-medium text-gray-700 mb-1">Pilih Kurir *</label>
-                      <select 
+                      <select
                         id="courier"
                         name="courier"
                         required
@@ -368,12 +368,11 @@ export default function CheckoutPage() {
                         <option value="">Pilih Kurir</option>
                         <option value="jne">JNE</option>
                         <option value="pos">POS Indonesia</option>
-                        <option value="tiki">TIKI</option>
                       </select>
                     </div>
                     <div>
                       <label htmlFor="service" className="block text-sm font-medium text-gray-700 mb-1">Layanan Pengiriman *</label>
-                      <select 
+                      <select
                         id="service"
                         name="service"
                         required
@@ -394,10 +393,10 @@ export default function CheckoutPage() {
                       </select>
                     </div>
                   </div>
-                  
+
                   <div>
                     <label htmlFor="address" className="block text-sm font-medium text-gray-700 mb-1">Alamat Lengkap Pengiriman *</label>
-                    <textarea 
+                    <textarea
                       id="address"
                       required
                       name="address"
@@ -405,27 +404,27 @@ export default function CheckoutPage() {
                       value={formData.address}
                       onChange={handleInputChange}
                       rows={2}
-                      className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-green resize-none" 
+                      className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-green resize-none"
                       placeholder="Jl. Raya Kopi No. 123, Desa Pajahan, Kec. Pupuan..."
                     />
                   </div>
-                  
+
                   <div>
                     <label htmlFor="notes" className="block text-sm font-medium text-gray-700 mb-1">Catatan Tambahan (Opsional)</label>
-                    <textarea 
+                    <textarea
                       id="notes"
                       name="notes"
                       value={formData.notes}
                       onChange={handleInputChange}
                       rows={2}
-                      className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-green resize-none" 
+                      className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-green resize-none"
                       placeholder="Misal: Titip di pos satpam jika tidak ada orang."
                     />
                   </div>
 
                   <div className="pt-4">
-                    <button 
-                      type="submit" 
+                    <button
+                      type="submit"
                       disabled={isLoading || !!pendingOrderId}
                       className="w-full bg-brand-green text-white py-4 rounded-xl font-bold text-lg hover:bg-brand-darkgreen transition-all shadow-md flex items-center justify-center gap-2 mt-8 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
@@ -448,12 +447,12 @@ export default function CheckoutPage() {
                 </form>
               </div>
             </div>
-            
+
             {/* Order Summary Section */}
             <div className="w-full lg:w-[400px]">
               <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 sticky top-24">
                 <h2 className="text-xl font-bold text-brand-text mb-6">Ringkasan Pesanan</h2>
-                
+
                 <div className="flex flex-col gap-4 mb-6 max-h-[350px] overflow-y-auto pr-2">
                   {items.map(item => (
                     <div key={item.cartItemId} className="flex gap-4 border-b border-gray-50 pb-4 last:border-0 last:pb-0">
@@ -476,7 +475,7 @@ export default function CheckoutPage() {
                     </div>
                   ))}
                 </div>
-                
+
                 <div className="border-t border-gray-100 pt-4 space-y-3">
                   <div className="flex justify-between text-sm text-gray-600">
                     <span>Subtotal</span>
@@ -497,16 +496,16 @@ export default function CheckoutPage() {
                 </div>
               </div>
             </div>
-            
+
           </div>
         </div>
       </main>
-            <Script 
+      <Script
         src={process.env.NEXT_PUBLIC_MIDTRANS_IS_PRODUCTION === 'true' ? "https://app.midtrans.com/snap/snap.js" : "https://app.sandbox.midtrans.com/snap/snap.js"}
         data-client-key={process.env.NEXT_PUBLIC_MIDTRANS_CLIENT_KEY || 'SB-Mid-client-YOUR_CLIENT_KEY_HERE'}
       />
-      
-      <ConfirmModal 
+
+      <ConfirmModal
         isOpen={showCancelModal}
         onClose={() => setShowCancelModal(false)}
         onConfirm={handleCancelOrder}

@@ -17,7 +17,7 @@ export type Customer = {
   last_order_date: string;
 };
 
-const ITEMS_PER_PAGE = 10;
+const ITEMS_PER_PAGE = 7;
 
 export default function CustomersManager() {
   const [customers, setCustomers] = useState<Customer[]>([]);
@@ -45,7 +45,7 @@ export default function CustomersManager() {
     query = query.order("last_order_date", { ascending: false }).range(from, to);
 
     const { data, count, error } = await query;
-    
+
     if (error) {
       console.error("Supabase Error:", error);
       toast.error("Gagal memuat data pelanggan: " + error.message);
@@ -116,7 +116,7 @@ export default function CustomersManager() {
     }
   };
 
-  if (loading) {
+  if (loading && customers.length === 0) {
     return (
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
@@ -142,7 +142,7 @@ export default function CustomersManager() {
             </thead>
             <tbody className="divide-y divide-gray-100 bg-white">
               {[1, 2, 3, 4, 5].map(i => (
-                <tr key={i} className="flex flex-col sm:table-row">
+                <tr key={i} className="h-[80px] flex flex-col sm:table-row">
                   <td className="px-5 py-4">
                     <div className="flex items-center gap-3">
                       <Skeleton className="h-10 w-10 rounded-full shrink-0" />
@@ -166,8 +166,8 @@ export default function CustomersManager() {
   }
 
   return (
-    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8 border-b border-gray-100 pb-6">
+    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden relative flex flex-col min-h-[875px] pb-24">
+      <div className="p-6 md:p-8 border-b border-gray-100 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-gray-50/50 shrink-0">
         <div className="flex items-center gap-4">
           <div className="w-12 h-12 bg-brand-lightbg rounded-xl flex items-center justify-center text-brand-green shrink-0 shadow-sm border border-brand-green/10">
             <Users size={24} />
@@ -177,12 +177,12 @@ export default function CustomersManager() {
             <p className="text-gray-500 text-sm">Lihat daftar pelanggan yang pernah berbelanja</p>
           </div>
         </div>
-        
+
         <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
           <form onSubmit={handleSearch} className="relative flex-1 sm:w-64">
-            <input 
-              type="text" 
-              placeholder="Cari nama, email, atau telepon..." 
+            <input
+              type="text"
+              placeholder="Cari nama, email, atau telepon..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-brand-green/20 focus:border-brand-green transition-colors outline-none text-sm"
@@ -191,7 +191,7 @@ export default function CustomersManager() {
           </form>
           <button
             onClick={exportToCSV}
-            className="flex items-center justify-center gap-2 px-4 py-2 bg-white border border-gray-200 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium text-sm shrink-0"
+            className="flex items-center justify-center gap-2 px-4 py-2 bg-white border border-gray-200 text-gray-700 rounded-lg hover:bg-gray-50 transition-all duration-200 active:scale-[0.97] ease-[cubic-bezier(0.23,1,0.32,1)] font-medium text-sm shrink-0 shadow-sm"
           >
             <Download size={18} />
             Export CSV
@@ -199,94 +199,99 @@ export default function CustomersManager() {
         </div>
       </div>
 
-      <div className="border border-gray-200 rounded-xl overflow-x-auto shadow-sm">
-        <table className="w-full text-left text-sm">
-          <thead className="bg-gray-50 border-b border-gray-200 text-gray-600">
-            <tr>
-              <th className="px-5 py-3.5 font-medium">Pelanggan</th>
-              <th className="px-5 py-3.5 font-medium">Kontak</th>
-              <th className="px-5 py-3.5 font-medium">Total Pesanan</th>
-              <th className="px-5 py-3.5 font-medium">Total Belanja</th>
-              <th className="px-5 py-3.5 font-medium">Pesanan Terakhir</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-100 bg-white">
-            {customers.map((customer) => (
-              <tr key={customer.phone} className="hover:bg-gray-50/50 transition-colors">
-                <td className="px-5 py-4">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-brand-lightbg flex items-center justify-center text-brand-green shrink-0">
-                      <UserCircle size={20} />
-                    </div>
-                    <span className="font-bold text-brand-text">{customer.name}</span>
-                  </div>
-                </td>
-                <td className="px-5 py-4">
-                  <div className="flex flex-col gap-1.5 text-gray-500 text-xs">
-                    <div className="flex items-center gap-1.5">
-                      <Phone size={12} className="text-gray-400" />
-                      {customer.phone}
-                    </div>
-                    {customer.email && (
-                      <div className="flex items-center gap-1.5">
-                        <Mail size={12} className="text-gray-400" />
-                        {customer.email}
-                      </div>
-                    )}
-                  </div>
-                </td>
-                <td className="px-5 py-4">
-                  <span className="bg-brand-green/10 text-brand-green border border-brand-green/20 px-2.5 py-1 rounded-full text-xs font-bold inline-flex items-center justify-center min-w-[2rem]">
-                    {customer.total_orders}
-                  </span>
-                </td>
-                <td className="px-5 py-4 font-bold text-brand-text">
-                  {formatRupiah(customer.total_spent)}
-                </td>
-                <td className="px-5 py-4 text-gray-500 text-xs">
-                  {new Date(customer.last_order_date).toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' })}
-                </td>
-              </tr>
-            ))}
-            {!loading && customers.length === 0 && (
+      <div className="p-6 flex-1 flex flex-col">
+        <div className={`border border-gray-200 rounded-xl overflow-x-auto shadow-sm ${loading ? 'opacity-50 pointer-events-none' : 'transition-opacity duration-200'}`}>
+          <table className="w-full text-left text-sm">
+            <thead className="bg-gray-50 border-b border-gray-200 text-gray-600">
               <tr>
-                <td colSpan={5} className="px-5 py-12 text-center text-gray-500">
-                  Tidak ada pelanggan yang ditemukan.
-                </td>
+                <th className="px-5 py-3.5 font-medium">Pelanggan</th>
+                <th className="px-5 py-3.5 font-medium">Kontak</th>
+                <th className="px-5 py-3.5 font-medium">Total Pesanan</th>
+                <th className="px-5 py-3.5 font-medium">Total Belanja</th>
+                <th className="px-5 py-3.5 font-medium">Pesanan Terakhir</th>
               </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
-
-      {/* Pagination Controls */}
-      {!loading && totalPages > 1 && (
-        <div className="flex items-center justify-between mt-6 px-2">
-          <p className="text-sm text-gray-500">
-            Menampilkan {(currentPage - 1) * ITEMS_PER_PAGE + 1} - {Math.min(currentPage * ITEMS_PER_PAGE, totalCount)} dari {totalCount} pelanggan
-          </p>
-          <div className="flex gap-2">
-            <Tooltip content="Halaman Sebelumnya">
-              <button 
-                onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-                disabled={currentPage === 1}
-                className="p-2 border border-gray-200 rounded-lg disabled:opacity-50 hover:bg-gray-50 transition-colors"
-              >
-                <ChevronLeft size={18} />
-              </button>
-            </Tooltip>
-            <Tooltip content="Halaman Selanjutnya">
-              <button 
-                onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-                disabled={currentPage === totalPages}
-                className="p-2 border border-gray-200 rounded-lg disabled:opacity-50 hover:bg-gray-50 transition-colors"
-              >
-                <ChevronRight size={18} />
-              </button>
-            </Tooltip>
-          </div>
+            </thead>
+            <tbody className="divide-y divide-gray-100 bg-white">
+              {customers.map((customer) => (
+                <tr key={customer.phone} className="h-[80px] hover:bg-gray-50 transition-colors duration-200 group">
+                  <td className="px-5 py-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-full bg-brand-lightbg flex items-center justify-center text-brand-green shrink-0">
+                        <UserCircle size={20} />
+                      </div>
+                      <span className="font-bold text-brand-text">{customer.name}</span>
+                    </div>
+                  </td>
+                  <td className="px-5 py-4">
+                    <div className="flex flex-col gap-1.5 text-gray-500 text-xs">
+                      <div className="flex items-center gap-1.5">
+                        <Phone size={12} className="text-gray-400" />
+                        {customer.phone}
+                      </div>
+                      {customer.email && (
+                        <div className="flex items-center gap-1.5">
+                          <Mail size={12} className="text-gray-400" />
+                          {customer.email}
+                        </div>
+                      )}
+                    </div>
+                  </td>
+                  <td className="px-5 py-4">
+                    <span className="bg-brand-green/5 text-brand-green ring-1 ring-inset ring-brand-green/20 px-2.5 py-1 rounded-full text-xs font-bold inline-flex items-center justify-center min-w-[2rem]">
+                      {customer.total_orders}
+                    </span>
+                  </td>
+                  <td className="px-5 py-4 font-bold text-brand-text">
+                    {formatRupiah(customer.total_spent)}
+                  </td>
+                  <td className="px-5 py-4 text-gray-500 text-xs">
+                    {new Date(customer.last_order_date).toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' })}
+                  </td>
+                </tr>
+              ))}
+              {!loading && customers.length === 0 && (
+                <tr>
+                  <td colSpan={5} className="px-5 py-12 text-center text-gray-500">
+                    Tidak ada pelanggan yang ditemukan.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
         </div>
-      )}
+
+        {/* Pagination Controls */}
+        {totalPages > 1 && (
+          <div className="absolute bottom-0 left-0 right-0 px-6 py-5 bg-white border-t border-gray-100 flex flex-col sm:flex-row justify-between items-center gap-4 z-10">
+            <span className="text-sm text-gray-500">
+              Menampilkan {(currentPage - 1) * ITEMS_PER_PAGE + 1} - {Math.min(currentPage * ITEMS_PER_PAGE, totalCount)} dari {totalCount} pelanggan
+            </span>
+            <div className="flex gap-2">
+              <Tooltip content="Halaman Sebelumnya">
+                <button
+                  onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                  disabled={currentPage === 1 || loading}
+                  className="p-2 border border-gray-200 rounded-lg text-gray-600 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center"
+                >
+                  <ChevronLeft size={20} />
+                </button>
+              </Tooltip>
+              <div className="flex items-center px-4 font-medium text-sm text-gray-700 bg-gray-50 border border-gray-200 rounded-lg">
+                {currentPage} / {totalPages}
+              </div>
+              <Tooltip content="Halaman Selanjutnya">
+                <button
+                  onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                  disabled={currentPage === totalPages || loading}
+                  className="p-2 border border-gray-200 rounded-lg text-gray-600 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center"
+                >
+                  <ChevronRight size={20} />
+                </button>
+              </Tooltip>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 }

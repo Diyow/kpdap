@@ -80,7 +80,7 @@ export default function ConfirmModal({
                 <Dialog.Close asChild>
                   <button
                     disabled={isLoading}
-                    className="flex-1 px-4 py-2.5 border border-gray-200 text-gray-700 font-semibold rounded-xl hover:bg-gray-50 transition-colors disabled:opacity-50"
+                    className="flex-1 px-4 py-2.5 border border-gray-200 text-gray-700 font-semibold rounded-xl hover:bg-gray-50 transition-all active:scale-95 disabled:opacity-50"
                   >
                     {cancelText}
                   </button>
@@ -88,7 +88,7 @@ export default function ConfirmModal({
                 <button
                   onClick={onConfirm}
                   disabled={isLoading}
-                  className={`flex-1 px-4 py-2.5 text-white font-semibold rounded-xl shadow-sm transition-colors disabled:opacity-50 flex items-center justify-center ${
+                  className={`flex-1 px-4 py-2.5 text-white font-semibold rounded-xl shadow-sm transition-all active:scale-95 disabled:opacity-50 flex items-center justify-center ${
                     isDestructive 
                       ? 'bg-red-600 hover:bg-red-700' 
                       : 'bg-brand-green hover:bg-brand-darkgreen'

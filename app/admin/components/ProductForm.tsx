@@ -59,6 +59,8 @@ export default function ProductForm({ initialData, onSave, onCancel }: ProductFo
     }));
   });
   
+  const [activeTab, setActiveTab] = useState("general");
+  
   const supabase = createClient();
 
   useEffect(() => {
@@ -184,9 +186,31 @@ export default function ProductForm({ initialData, onSave, onCancel }: ProductFo
 
   const handleSave = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setIsSaving(true);
     
     const formData = new FormData(e.currentTarget);
+    const titleStr = formData.get("title") as string;
+    
+    // Manual Validation for better UX across tabs
+    if (!titleStr || !titleStr.trim()) {
+      setActiveTab("general");
+      toast.error("Silakan isi Judul Produk.");
+      return;
+    }
+    
+    if (!selectedCategory) {
+      setActiveTab("general");
+      toast.error("Silakan pilih Kategori Produk.");
+      return;
+    }
+    
+    const priceStr = formData.get("price") as string;
+    if (!priceStr || parseInt(priceStr) <= 0) {
+      setActiveTab("price_stock");
+      toast.error("Silakan isi Harga Produk dengan valid.");
+      return;
+    }
+    
+    setIsSaving(true);
     const uploadedUrls: string[] = [];
     let newThumbnailUrl = "";
 
@@ -224,8 +248,9 @@ export default function ProductForm({ initialData, onSave, onCancel }: ProductFo
     }
 
     if (!newThumbnailUrl) {
-      toast.error("Silakan unggah minimal 1 gambar untuk thumbnail.");
       setIsSaving(false);
+      setActiveTab("media_vars");
+      toast.error("Silakan unggah minimal 1 gambar untuk thumbnail.");
       return;
     }
 
@@ -239,7 +264,6 @@ export default function ProductForm({ initialData, onSave, onCancel }: ProductFo
       return acc;
     }, {} as Record<string, string>);
 
-    const titleStr = formData.get("title") as string;
     const slugStr = titleStr.trim().toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)+/g, "");
 
     const productData = {
@@ -287,8 +311,8 @@ export default function ProductForm({ initialData, onSave, onCancel }: ProductFo
       <h2 className="text-2xl font-bold text-brand-text mb-6">
         {initialData ? "Edit Produk" : "Tambah Produk Baru"}
       </h2>
-      <form onSubmit={handleSave} className="space-y-6">
-        <Tabs defaultValue="general" className="w-full">
+      <form onSubmit={handleSave} noValidate className="space-y-6">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="mb-6 w-full flex overflow-x-auto sm:grid sm:grid-cols-3 bg-gray-100/50 p-1.5 rounded-xl justify-start">
             <TabsTrigger value="general" className="py-2.5 text-sm flex-shrink-0">Informasi Dasar</TabsTrigger>
             <TabsTrigger value="price_stock" className="py-2.5 text-sm flex-shrink-0">Harga & Stok</TabsTrigger>
@@ -452,7 +476,7 @@ export default function ProductForm({ initialData, onSave, onCancel }: ProductFo
                 stock: parseInt((document.querySelector('input[name="stock"]') as HTMLInputElement)?.value || "0", 10),
                 weight: parseInt((document.querySelector('input[name="weight"]') as HTMLInputElement)?.value || "1000", 10)
               }])}
-              className="text-xs font-medium text-brand-green hover:underline flex items-center gap-1"
+              className="text-xs font-medium text-brand-green hover:underline flex items-center gap-1 transition-all duration-200 active:scale-[0.95] ease-[cubic-bezier(0.23,1,0.32,1)]"
             >
               <Plus size={14} /> Tambah Variasi
             </button>
@@ -568,7 +592,7 @@ export default function ProductForm({ initialData, onSave, onCancel }: ProductFo
             <button 
               type="button" 
               onClick={() => setSpecifications([...specifications, { name: "", value: "" }])}
-              className="text-xs font-medium text-brand-green hover:underline flex items-center gap-1"
+              className="text-xs font-medium text-brand-green hover:underline flex items-center gap-1 transition-all duration-200 active:scale-[0.95] ease-[cubic-bezier(0.23,1,0.32,1)]"
             >
               <Plus size={14} /> Tambah Spesifikasi
             </button>
@@ -643,7 +667,7 @@ export default function ProductForm({ initialData, onSave, onCancel }: ProductFo
               </div>
             </div>
 
-            <div className="relative border-2 border-dashed border-gray-300 rounded-xl p-8 text-center hover:bg-gray-50 transition-colors group">
+            <div className="relative border-2 border-dashed border-gray-300 rounded-xl p-8 text-center hover:bg-brand-green/5 hover:border-brand-green/50 transition-colors duration-300 group">
               <input 
                 type="file" 
                 accept="image/jpeg,image/png,image/webp,image/gif" 
@@ -670,8 +694,8 @@ export default function ProductForm({ initialData, onSave, onCancel }: ProductFo
                 <div 
                   key={`existing-${idx}`} 
                   onClick={() => setSelectedThumbnail(url)}
-                  className={`relative aspect-square rounded-lg overflow-hidden border-2 cursor-pointer transition-all group ${
-                    selectedThumbnail === url ? 'border-brand-green shadow-md scale-105' : 'border-gray-200 hover:border-brand-green/50'
+                  className={`relative aspect-square rounded-lg overflow-hidden border-2 cursor-pointer transition-all duration-300 ease-out group ${
+                    selectedThumbnail === url ? 'border-brand-green shadow-md scale-105' : 'border-gray-200 hover:border-brand-green/50 hover:scale-[1.02]'
                   }`}
                 >
                   <Image src={url} alt={`Existing ${idx}`} fill className="object-cover" />
@@ -699,8 +723,8 @@ export default function ProductForm({ initialData, onSave, onCancel }: ProductFo
                 <div 
                   key={`new-${idx}`} 
                   onClick={() => setSelectedThumbnail(preview.url)}
-                  className={`relative aspect-square rounded-lg overflow-hidden border-2 cursor-pointer transition-all group ${
-                    selectedThumbnail === preview.url ? 'border-brand-green shadow-md scale-105' : 'border-brand-green/30 hover:border-brand-green/50'
+                  className={`relative aspect-square rounded-lg overflow-hidden border-2 cursor-pointer transition-all duration-300 ease-out group ${
+                    selectedThumbnail === preview.url ? 'border-brand-green shadow-md scale-105' : 'border-brand-green/30 hover:border-brand-green/50 hover:scale-[1.02]'
                   }`}
                 >
                   <Image src={preview.url} alt={preview.name} fill className="object-cover" />
@@ -728,11 +752,11 @@ export default function ProductForm({ initialData, onSave, onCancel }: ProductFo
       </Tabs>
 
         <div className="flex items-center justify-end gap-3 pt-6 mt-6 border-t border-gray-100">
-          <button type="submit" disabled={isSaving} className="bg-brand-green text-white px-6 py-2.5 rounded-lg font-medium hover:bg-brand-darkgreen transition-colors flex items-center gap-2 disabled:opacity-50">
+          <button type="submit" disabled={isSaving} className="bg-brand-green text-white px-6 py-2.5 rounded-lg font-medium hover:bg-brand-darkgreen transition-all duration-200 active:scale-[0.97] ease-[cubic-bezier(0.23,1,0.32,1)] flex items-center gap-2 disabled:opacity-50 shadow-sm hover:shadow-md">
             {isSaving ? <Loader2 size={18} className="animate-spin" /> : null}
             {isSaving ? "Menyimpan..." : "Simpan Produk"}
           </button>
-          <button type="button" onClick={onCancel} className="bg-gray-100 text-brand-text px-6 py-2.5 rounded-lg font-medium hover:bg-gray-200 transition-colors">
+          <button type="button" onClick={onCancel} className="bg-gray-100 text-brand-text px-6 py-2.5 rounded-lg font-medium hover:bg-gray-200 transition-all duration-200 active:scale-[0.97] ease-[cubic-bezier(0.23,1,0.32,1)]">
             Batal
           </button>
         </div>
