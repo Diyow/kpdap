@@ -17,17 +17,29 @@ export default async function ProductDetailPage({
   const { slug } = await params;
   const decodedSlug = decodeURIComponent(slug);
   
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!
-  );
+  let product: any = null;
+  let error: any = null;
 
-  // Try fetching from supabase
-  const { data: product, error } = await supabase
-    .from("products")
-    .select("*")
-    .eq("slug", decodedSlug)
-    .single();
+  if (process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY) {
+    try {
+      const supabase = createClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL,
+        process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
+      );
+
+      // Try fetching from supabase
+      const { data, error: err } = await supabase
+        .from("products")
+        .select("*")
+        .eq("slug", decodedSlug)
+        .single();
+      product = data;
+      error = err;
+    } catch (err) {
+      console.error("Failed to fetch product:", err);
+      error = err;
+    }
+  }
 
   if (!product || error) {
     return (

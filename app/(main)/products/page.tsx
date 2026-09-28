@@ -13,19 +13,30 @@ export const metadata: Metadata = {
 export const revalidate = 60; // Revalidate every minute
 
 export default async function ProductsPage() {
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!
-  );
+  let categories: any[] = [];
+  let products: any[] = [];
 
-  // Fetch categories and products server-side
-  const { data: categories } = await supabase.from("categories").select("*").order("name");
-  
-  const { data: products } = await supabase
-    .from("products")
-    .select("id, title, price, compare_at_price, image, description, badge, category_id, variations, slug")
-    .eq("is_active", true)
-    .order("id", { ascending: false });
+  if (process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY) {
+    try {
+      const supabase = createClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL,
+        process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
+      );
+
+      // Fetch categories and products server-side
+      const { data: catData } = await supabase.from("categories").select("*").order("name");
+      if (catData) categories = catData;
+
+      const { data: prodData } = await supabase
+        .from("products")
+        .select("id, title, price, compare_at_price, image, description, badge, category_id, variations, slug")
+        .eq("is_active", true)
+        .order("id", { ascending: false });
+      if (prodData) products = prodData;
+    } catch (err) {
+      console.error("Failed to fetch products:", err);
+    }
+  }
 
   return (
     <>

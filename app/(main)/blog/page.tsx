@@ -7,16 +7,26 @@ import BusinessUnitsSection from "@/app/components/BusinessUnitsSection";
 export const revalidate = 60; // Revalidate every minute
 
 export default async function BlogPage() {
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!
-  );
+  let articles: any[] = [];
 
-  const { data: articles } = await supabase
-    .from("articles")
-    .select("*")
-    .eq("is_published", true)
-    .order("created_at", { ascending: false });
+  if (process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY) {
+    try {
+      const supabase = createClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL,
+        process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
+      );
+
+      const { data } = await supabase
+        .from("articles")
+        .select("*")
+        .eq("is_published", true)
+        .order("created_at", { ascending: false });
+
+      if (data) articles = data;
+    } catch (err) {
+      console.error("Failed to fetch articles:", err);
+    }
+  }
 
   return (
     <>
