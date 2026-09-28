@@ -9,19 +9,21 @@ export default async function MainLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!
-  );
-  
   let contact = { phone: defaultContact.phone, email: defaultContact.email };
-  try {
-    const { data } = await supabase.from("contact_info").select("phone, email").eq("id", 1).single();
-    if (data) {
-      contact = { phone: data.phone, email: data.email };
+  
+  if (process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY) {
+    try {
+      const supabase = createClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL,
+        process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
+      );
+      const { data } = await supabase.from("contact_info").select("phone, email").eq("id", 1).single();
+      if (data) {
+        contact = { phone: data.phone, email: data.email };
+      }
+    } catch (error) {
+      console.error("Failed to fetch contact info:", error);
     }
-  } catch (error) {
-    console.error("Failed to fetch contact info:", error);
   }
 
   return (

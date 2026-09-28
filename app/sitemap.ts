@@ -6,22 +6,32 @@ export const runtime = 'edge';
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = 'https://kpdap.com'; // Update this when you have a real domain
 
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!
-  );
+  let productUrls: MetadataRoute.Sitemap = [];
 
-  // Fetch all products to dynamically add them to the sitemap
-  const { data: products } = await supabase
-    .from('products')
-    .select('id, updated_at');
+  if (process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY) {
+    try {
+      const supabase = createClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL,
+        process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
+      );
 
-  const productUrls = (products || []).map((product) => ({
-    url: `${baseUrl}/products/${product.id}`,
-    lastModified: new Date(product.updated_at || new Date()),
-    changeFrequency: 'weekly' as const,
-    priority: 0.8,
-  }));
+      // Fetch all products to dynamically add them to the sitemap
+      const { data: products } = await supabase
+        .from('products')
+        .select('id, updated_at');
+
+      if (products) {
+        productUrls = products.map((product) => ({
+          url: `${baseUrl}/products/${product.id}`,
+          lastModified: new Date(product.updated_at || new Date()),
+          changeFrequency: 'weekly' as const,
+          priority: 0.8,
+        }));
+      }
+    } catch (err) {
+      console.error("Failed to fetch products for sitemap:", err);
+    }
+  }
 
   return [
     {

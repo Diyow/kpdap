@@ -9,18 +9,20 @@ import { contactInfo as fallbackContact } from "../data";
 export default async function Footer() {
   let contactInfo = fallbackContact;
 
-  try {
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!
-    );
-    const { data: contactData } = await supabase.from("contact_info").select("*").eq("id", 1).single();
+  if (process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY) {
+    try {
+      const supabase = createClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL,
+        process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
+      );
+      const { data: contactData } = await supabase.from("contact_info").select("*").eq("id", 1).single();
 
-    if (contactData) {
-      contactInfo = contactData;
+      if (contactData) {
+        contactInfo = contactData;
+      }
+    } catch (err) {
+      console.error("Failed to fetch contact info for footer:", err);
     }
-  } catch (err) {
-    console.error("Failed to fetch contact info for footer:", err);
   }
 
   return (

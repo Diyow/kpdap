@@ -3,12 +3,19 @@ import { createClient } from "@supabase/supabase-js";
 import ProductCard from "./ProductCard";
 
 export default async function ProductsSection() {
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!
-  );
-  
-  const { data: products } = await supabase.from("products").select("*").eq("is_active", true).order("id");
+  let products: any[] = [];
+  if (process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY) {
+    try {
+      const supabase = createClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL,
+        process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
+      );
+      const { data } = await supabase.from("products").select("*").eq("is_active", true).order("id");
+      if (data) products = data;
+    } catch (err) {
+      console.error("Failed to fetch products for section:", err);
+    }
+  }
 
   return (
     <section id="products" className="py-20 px-4 md:px-8 bg-[#fdfbf7]">
