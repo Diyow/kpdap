@@ -88,7 +88,7 @@ export default function ProductsManager() {
     }
 
     await supabase.from("products").delete().eq("id", productToDelete.id);
-    await logAdminActivity("DELETE_PRODUCT", `Menghapus produk: ${productToDelete.title}`);
+    logAdminActivity("DELETE_PRODUCT", `Menghapus produk: ${productToDelete.title}`).catch(console.error);
 
     fetchProducts();
     setDeleteModalOpen(false);

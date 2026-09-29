@@ -96,7 +96,7 @@ export default function ArticlesManager() {
       toast.error("Gagal menghapus artikel: " + error.message);
     } else {
       toast.success("Artikel berhasil dihapus");
-      await logAdminActivity("DELETE_ARTICLE", `Menghapus artikel: ${articleToDelete.title}`);
+      logAdminActivity("DELETE_ARTICLE", `Menghapus artikel: ${articleToDelete.title}`).catch(console.error);
       fetchArticles();
     }
 

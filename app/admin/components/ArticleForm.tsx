@@ -111,7 +111,8 @@ export default function ArticleForm({ article, onClose, onSuccess }: ArticleForm
           .eq("id", article.id);
 
         if (error) throw error;
-        await logAdminActivity("UPDATE_ARTICLE", `Mengubah artikel: ${title}`);
+        // Fire-and-forget: don't block save on the logging Server Action cold-start
+        logAdminActivity("UPDATE_ARTICLE", `Mengubah artikel: ${title}`).catch(console.error);
         toast.success("Artikel berhasil diperbarui");
       } else {
         const { error } = await supabase
@@ -122,7 +123,8 @@ export default function ArticleForm({ article, onClose, onSuccess }: ArticleForm
           if (error.code === '23505') throw new Error("Slug sudah digunakan, gunakan slug lain");
           throw error;
         }
-        await logAdminActivity("CREATE_ARTICLE", `Menulis artikel baru: ${title}`);
+        // Fire-and-forget: don't block save on the logging Server Action cold-start
+        logAdminActivity("CREATE_ARTICLE", `Menulis artikel baru: ${title}`).catch(console.error);
         toast.success("Artikel berhasil dibuat");
       }
 

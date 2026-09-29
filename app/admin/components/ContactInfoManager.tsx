@@ -43,7 +43,7 @@ export default function ContactInfoManager() {
       if (error) {
       setMessage({ type: 'error', text: 'Gagal memperbarui info kontak. ' + error.message });
     } else {
-      await logAdminActivity("UPDATE_CONTACT", "Memperbarui info kontak");
+      logAdminActivity("UPDATE_CONTACT", "Memperbarui info kontak").catch(console.error);
       setMessage({ type: 'success', text: 'Info kontak berhasil diperbarui!' });
       setTimeout(() => setMessage(null), 3000);
     }

@@ -72,6 +72,9 @@ export default function AdminLogsManager() {
     let query = supabase
       .from("admin_logs")
       .select("*", { count: "exact" })
+      // Exclude noisy login/logout events — these fire on every session and
+      // are not meaningful for operational audit purposes.
+      .not("action_type", "in", '("LOGIN","LOGOUT")')
       .order("created_at", { ascending: false });
 
     if (debouncedSearch) {
@@ -199,7 +202,6 @@ export default function AdminLogsManager() {
                 <SelectItem value="ADMIN">Admin</SelectItem>
                 <SelectItem value="PASSWORD">Password</SelectItem>
                 <SelectItem value="CONTACT">Kontak</SelectItem>
-                <SelectItem value="LOG">Autentikasi (Login/Logout)</SelectItem>
               </SelectContent>
             </Select>
           </div>

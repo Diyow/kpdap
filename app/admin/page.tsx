@@ -59,7 +59,7 @@ export default function AdminDashboard() {
     { id: "customers", label: "Pelanggan", icon: Users },
     { id: "products", label: "Produk", icon: Package },
     { id: "articles", label: "Artikel", icon: Newspaper },
-    { id: "contact", label: "Info Kontak", icon: Contact },
+    // { id: "contact", label: "Info Kontak", icon: Contact },
     { id: "admins", label: "Manajemen Admin", icon: Shield },
     { id: "logs", label: "Log Aktivitas", icon: History },
   ];
@@ -80,8 +80,8 @@ export default function AdminDashboard() {
                   key={item.id}
                   onClick={() => handleTabChange(item.id)}
                   className={`group flex items-center gap-3 px-3.5 py-2.5 rounded-full md:rounded-lg text-sm transition-all duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] active:scale-[0.97] text-left whitespace-nowrap snap-center shrink-0 md:shrink ${isActive
-                      ? "bg-brand-green/[0.08] text-brand-green font-semibold"
-                      : "text-gray-500 hover:bg-gray-50 hover:text-gray-900 font-medium"
+                    ? "bg-brand-green/[0.08] text-brand-green font-semibold"
+                    : "text-gray-500 hover:bg-gray-50 hover:text-gray-900 font-medium"
                     }`}
                 >
                   <Icon size={18} className={`transition-colors duration-200 ${isActive ? "text-brand-green" : "text-gray-400 group-hover:text-gray-600"}`} />

@@ -99,7 +99,7 @@ export default function ProductForm({ initialData, onSave, onCancel }: ProductFo
       setSelectedCategory(data[0].id);
       setIsAddingCategory(false);
       setNewCategoryName("");
-      await logAdminActivity("CREATE_CATEGORY", `Menambahkan kategori: ${data[0].name}`);
+      logAdminActivity("CREATE_CATEGORY", `Menambahkan kategori: ${data[0].name}`).catch(console.error);
     } else {
       toast.error("Gagal menambahkan kategori: " + (error?.message || "Unknown error"));
     }
@@ -122,7 +122,7 @@ export default function ProductForm({ initialData, onSave, onCancel }: ProductFo
       if (selectedCategory === categoryToDelete.id) {
         setSelectedCategory("");
       }
-      await logAdminActivity("DELETE_CATEGORY", `Menghapus kategori: ${categoryToDelete.name}`);
+      logAdminActivity("DELETE_CATEGORY", `Menghapus kategori: ${categoryToDelete.name}`).catch(console.error);
       setCategoryToDelete(null);
     }
     setIsDeletingCategory(false);

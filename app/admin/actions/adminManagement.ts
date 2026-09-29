@@ -78,7 +78,7 @@ export async function createAdmin(formData: FormData) {
       return { error: roleError.message };
     }
 
-    await logAdminActivity("CREATE_ADMIN", `Menambahkan admin baru: ${email}`);
+    logAdminActivity("CREATE_ADMIN", `Menambahkan admin baru: ${email}`).catch(console.error);
 
     return { success: true };
   } catch (error: any) {
@@ -102,7 +102,7 @@ export async function deleteAdmin(userId: string, userEmail?: string) {
     if (error) return { error: error.message };
 
     const identifier = userEmail || userId;
-    await logAdminActivity("DELETE_ADMIN", `Menghapus admin: ${identifier}`);
+    logAdminActivity("DELETE_ADMIN", `Menghapus admin: ${identifier}`).catch(console.error);
 
     return { success: true };
   } catch (error: any) {
@@ -131,7 +131,7 @@ export async function updateMyPassword(formData: FormData) {
 
     if (error) return { error: error.message };
 
-    await logAdminActivity("UPDATE_PASSWORD", `Memperbarui password akun sendiri`);
+    logAdminActivity("UPDATE_PASSWORD", `Memperbarui password akun sendiri`).catch(console.error);
 
     return { success: true };
   } catch (error: any) {
