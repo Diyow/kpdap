@@ -34,12 +34,20 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const handleLogout = async () => {
     setIsLoggingOut(true);
     try {
-      await logAdminActivity("LOGOUT", "Admin telah keluar (logout) dari sistem");
       const supabase = createClient();
       await supabase.auth.signOut();
-      window.location.href = "/admin/login";
+      // Fire-and-forget the log — do not await it so it doesn't delay navigation
+      logAdminActivity("LOGOUT", "Admin telah keluar (logout) dari sistem").catch(console.error);
+      // Use router navigation instead of window.location.href to avoid the race condition
+      // where a full page reload hits the Cloudflare edge middleware before the session
+      // cookie has been cleared from the browser.
+      router.refresh();
+      router.push("/admin/login");
     } catch (error) {
       console.error("Logout error:", error);
+      router.refresh();
+      router.push("/admin/login");
+    } finally {
       setIsLoggingOut(false);
     }
   };

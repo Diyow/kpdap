@@ -5,6 +5,10 @@ import { cookies } from "next/headers";
 
 export async function logAdminActivity(actionType: string, description: string) {
   try {
+    if (!process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL.includes("placeholder")) {
+      return;
+    }
+
     const cookieStore = await cookies();
     const supabase = createClient(cookieStore);
     

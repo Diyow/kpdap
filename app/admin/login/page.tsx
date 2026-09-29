@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import { createClient } from "@/utils/supabase/client";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
@@ -11,6 +11,7 @@ export default function AdminLogin() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [, startTransition] = useTransition();
   const router = useRouter();
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -28,8 +29,15 @@ export default function AdminLogin() {
       setError(error.message);
       setLoading(false);
     } else {
-      await logAdminActivity("LOGIN", "Admin telah masuk (login) ke sistem");
-      window.location.href = "/admin";
+      // Fire-and-forget logging so slow network or Server Actions won't block navigation
+      logAdminActivity("LOGIN", "Admin telah masuk (login) ke sistem").catch(console.error);
+      // Use router.refresh() to force Next.js to re-run middleware with the new session cookie,
+      // then router.push() to navigate. This avoids the race condition where a full page reload
+      // (window.location.href) would hit the edge middleware before the session cookie was readable.
+      startTransition(() => {
+        router.refresh();
+        router.push("/admin");
+      });
     }
   };
 

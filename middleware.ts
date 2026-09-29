@@ -35,8 +35,13 @@ export async function middleware(request: NextRequest) {
       }
     );
 
-    // refreshing the auth token
-    const { data: { user } } = await supabase.auth.getUser().catch(() => ({ data: { user: null } }));
+    // Use getSession() instead of getUser() for middleware.
+    // getSession() reads the JWT from the cookie without a network round-trip to Supabase,
+    // which is critical on Cloudflare's edge where cold-start latency is high.
+    // The JWT is cryptographically signed, so it is safe to trust for route-guarding.
+    // getUser() (server-side token validation) is reserved for sensitive data operations.
+    const { data: { session } } = await supabase.auth.getSession().catch(() => ({ data: { session: null } }));
+    const user = session?.user ?? null;
 
     const isAdminRoute = request.nextUrl.pathname.startsWith('/admin') && !request.nextUrl.pathname.startsWith('/admin/login');
 

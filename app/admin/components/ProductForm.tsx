@@ -285,7 +285,8 @@ export default function ProductForm({ initialData, onSave, onCancel }: ProductFo
 
     if (initialData) {
       await supabase.from("products").update(productData).eq("id", initialData.id);
-      await logAdminActivity("UPDATE_PRODUCT", `Memperbarui produk: ${productData.title}`);
+      // Fire-and-forget: don't block save on the logging Server Action cold-start
+      logAdminActivity("UPDATE_PRODUCT", `Memperbarui produk: ${productData.title}`).catch(console.error);
       
       // Cleanup deleted images from storage
       const initialImages = [initialData.image, ...(initialData.images || [])].filter(Boolean);
@@ -298,7 +299,8 @@ export default function ProductForm({ initialData, onSave, onCancel }: ProductFo
       }
     } else {
       await supabase.from("products").insert([productData]);
-      await logAdminActivity("CREATE_PRODUCT", `Menambahkan produk baru: ${productData.title}`);
+      // Fire-and-forget: don't block save on the logging Server Action cold-start
+      logAdminActivity("CREATE_PRODUCT", `Menambahkan produk baru: ${productData.title}`).catch(console.error);
     }
     
     toast.success("Produk berhasil disimpan!");
