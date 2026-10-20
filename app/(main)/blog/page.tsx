@@ -3,8 +3,8 @@ import Link from "next/link";
 import Image from "next/image";
 import { ArrowRight, Calendar, User } from "lucide-react";
 import BusinessUnitsSection from "@/app/components/BusinessUnitsSection";
-
-export const revalidate = 60; // Revalidate every minute
+export const runtime = 'edge';
+export const dynamic = 'force-dynamic';
 
 export default async function BlogPage() {
   let articles: any[] = [];

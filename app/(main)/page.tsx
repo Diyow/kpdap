@@ -4,8 +4,8 @@ import BusinessUnitsSection from "@/app/components/BusinessUnitsSection";
 import AboutSection from "@/app/components/AboutSection";
 import AdvantagesSection from "@/app/components/AdvantagesSection";
 import ProductsSection from "@/app/components/ProductsSection";
-
-export const revalidate = 60; // Revalidate every minute
+export const runtime = 'edge';
+export const dynamic = 'force-dynamic';
 
 export default function Home() {
   return (

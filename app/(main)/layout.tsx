@@ -3,6 +3,8 @@ import Header from "@/app/components/Header";
 import Footer from "@/app/components/Footer";
 import { createClient } from "@supabase/supabase-js";
 import { contactInfo as defaultContact } from "@/app/data";
+export const runtime = 'edge';
+export const dynamic = 'force-dynamic';
 
 export default async function MainLayout({
   children,

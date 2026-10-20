@@ -9,8 +9,7 @@ import EmptyState from "@/app/components/EmptyState";
 import type { Metadata } from 'next'
 
 export const runtime = 'edge';
-
-export const revalidate = 60; // Revalidate every minute
+export const dynamic = 'force-dynamic';
 
 type Props = {
   params: Promise<{ slug: string }>

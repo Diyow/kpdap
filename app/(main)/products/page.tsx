@@ -9,8 +9,8 @@ export const metadata: Metadata = {
   title: 'Katalog Produk Kami | KPDAP',
   description: 'Jelajahi berbagai pilihan kopi premium, paket wisata, dan produk pertanian organik kami yang ditanam dengan penuh cinta oleh para petani Bali.'
 };
-
-export const revalidate = 60; // Revalidate every minute
+export const runtime = 'edge';
+export const dynamic = 'force-dynamic';
 
 export default async function ProductsPage() {
   let categories: any[] = [];
